@@ -1,9 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('theme-toggle');
-    const darkIcon = themeToggle.querySelector('.dark-icon');
-    const lightIcon = themeToggle.querySelector('.light-icon');
-    const modeText = themeToggle.querySelector('.mode-text');
-    
+    const body = document.body;
+    const darkIcon = document.querySelector('.dark-icon');
+    const lightIcon = document.querySelector('.light-icon');
+    const modeText = document.querySelector('.mode-text');
+    const searchInput = document.getElementById('quick-search');
+    const footer = document.querySelector('footer');
+
     // Apply transition class after page loads to prevent transition on initial load
     setTimeout(() => {
         document.body.classList.add('transitions-enabled');
@@ -14,10 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentTheme = localStorage.getItem('theme');
     
     if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
-        document.body.classList.add('dark-mode');
-        darkIcon.classList.add('d-none');
-        lightIcon.classList.remove('d-none');
-        modeText.textContent = 'Light Mode';
+        enableDarkMode();
     }
     
     // Toggle theme when button is clicked
@@ -28,18 +28,10 @@ document.addEventListener('DOMContentLoaded', function() {
             themeToggle.classList.remove('animate-toggle');
         }, 300);
         
-        document.body.classList.toggle('dark-mode');
-        
-        if (document.body.classList.contains('dark-mode')) {
-            localStorage.setItem('theme', 'dark');
-            darkIcon.classList.add('d-none');
-            lightIcon.classList.remove('d-none');
-            modeText.textContent = 'Light Mode';
+        if (body.classList.contains('dark-mode')) {
+            disableDarkMode();
         } else {
-            localStorage.setItem('theme', 'light');
-            darkIcon.classList.remove('d-none');
-            lightIcon.classList.add('d-none');
-            modeText.textContent = 'Dark Mode';
+            enableDarkMode();
         }
     });
     
@@ -47,16 +39,46 @@ document.addEventListener('DOMContentLoaded', function() {
     prefersDarkScheme.addEventListener('change', function(e) {
         if (!localStorage.getItem('theme')) {
             if (e.matches) {
-                document.body.classList.add('dark-mode');
-                darkIcon.classList.add('d-none');
-                lightIcon.classList.remove('d-none');
-                modeText.textContent = 'Light Mode';
+                enableDarkMode();
             } else {
-                document.body.classList.remove('dark-mode');
-                darkIcon.classList.remove('d-none');
-                lightIcon.classList.add('d-none');
-                modeText.textContent = 'Dark Mode';
+                disableDarkMode();
             }
         }
     });
+
+    function enableDarkMode() {
+        body.classList.add('dark-mode');
+        darkIcon.classList.add('d-none');
+        lightIcon.classList.remove('d-none');
+        modeText.textContent = 'Light Mode';
+        localStorage.setItem('darkMode', 'enabled');
+        
+        // Update search input for dark mode
+        if (searchInput) {
+            searchInput.classList.add('dark-search');
+        }
+        
+        // Update footer for dark mode
+        if (footer) {
+            footer.classList.add('dark-footer');
+        }
+    }
+
+    function disableDarkMode() {
+        body.classList.remove('dark-mode');
+        darkIcon.classList.remove('d-none');
+        lightIcon.classList.add('d-none');
+        modeText.textContent = 'Dark Mode';
+        localStorage.setItem('darkMode', 'disabled');
+        
+        // Update search input for light mode
+        if (searchInput) {
+            searchInput.classList.remove('dark-search');
+        }
+        
+        // Update footer for light mode
+        if (footer) {
+            footer.classList.remove('dark-footer');
+        }
+    }
 });

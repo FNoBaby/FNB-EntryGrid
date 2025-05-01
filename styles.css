@@ -71,6 +71,11 @@ body {
     color: #e1e1e1;
 }
 
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
 .dark-mode .page-header {
     color: #f1f1f1;
 }
@@ -80,10 +85,20 @@ body {
     border-color: #333;
 }
 
+body.dark-mode .card {
+    background-color: #1e1e1e;
+    border-color: #333;
+}
+
 .dark-mode .card-title,
 .dark-mode .card-text {
     color: #e1e1e1;
     transition: color 0.3s ease;
+}
+
+body.dark-mode .card-title,
+body.dark-mode .card-text {
+    color: #e0e0e0;
 }
 
 .dark-mode .btn-outline-secondary {
@@ -98,6 +113,10 @@ body {
 
 .dark-mode footer {
     color: #aaa;
+}
+
+.dark-footer {
+    color: #aaa !important;
 }
 
 /* Theme Toggle Button */
@@ -149,6 +168,10 @@ body {
     color: #f1f1f1;
 }
 
+body.dark-mode .section-heading {
+    color: #e0e0e0;
+}
+
 .dark-mode .section-heading::after {
     background-color: #0d6efd;
 }
@@ -188,6 +211,20 @@ body {
 
 .dark-mode .search-icon {
     color: #aaa;
+}
+
+body.dark-mode .search-icon {
+    color: #aaa;
+}
+
+.dark-search {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+.dark-search::placeholder {
+    color: #aaa !important;
 }
 
 /* Responsive improvements */
