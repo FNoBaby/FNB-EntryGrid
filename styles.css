@@ -13,6 +13,9 @@ body {
                 border-color 0.3s ease;
     margin: 0 auto;
     height: 100%;
+    max-width: none; /* Remove the max-width restriction */
+    animation: fadeIn 0.6s ease-in-out;
+    animation-fill-mode: both;
 }
 
 .card:hover {
@@ -21,9 +24,24 @@ body {
 }
 
 .card-img-top {
-    padding: 20px;
-    height: 180px;
+    padding: 20px; /* Revert back to original 20px padding */
+    height: 180px; /* Revert back to original 180px height */
     object-fit: contain;
+}
+
+.card-body {
+    padding: 1.25rem; /* Revert to default Bootstrap padding */
+}
+
+.card-title {
+    font-size: 1.25rem; /* Revert to original size */
+    margin-bottom: 0.5rem; /* Revert to original margin */
+}
+
+.card-text {
+    font-size: 1rem; /* Revert to original size */
+    line-height: 1.5; /* Revert to original line height */
+    margin-bottom: 1rem; /* Keep original margin */
 }
 
 .page-header {
@@ -40,6 +58,11 @@ body {
 
 .btn-primary:hover {
     background-color: #0069d9;
+}
+
+.btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
 }
 
 /* Dark Mode Styles */
@@ -129,3 +152,75 @@ body {
 .dark-mode .section-heading::after {
     background-color: #0d6efd;
 }
+
+/* Quick Search */
+.search-container {
+    max-width: 400px;
+    margin: 0 auto 2rem;
+    position: relative;
+}
+
+.search-input {
+    border-radius: 20px;
+    padding-left: 2.5rem;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: #86b7fe;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+.dark-mode .search-input {
+    background-color: #333;
+    border-color: #444;
+    color: #e1e1e1;
+}
+
+.dark-mode .search-icon {
+    color: #aaa;
+}
+
+/* Responsive improvements */
+@media (max-width: 767px) {
+    .page-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .section-heading {
+        font-size: 1.4rem;
+    }
+    
+    .card {
+        max-width: 100%;
+    }
+}
+
+/* Loading animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Create a staggered animation effect for cards */
+.row > div:nth-child(1) .card { animation-delay: 0.1s; }
+.row > div:nth-child(2) .card { animation-delay: 0.2s; }
+.row > div:nth-child(3) .card { animation-delay: 0.3s; }
+.row > div:nth-child(4) .card { animation-delay: 0.4s; }
+.row > div:nth-child(5) .card { animation-delay: 0.5s; }
+.row > div:nth-child(6) .card { animation-delay: 0.6s; }

@@ -24,6 +24,12 @@
             <i class="bi bi-sun-fill me-1 light-icon d-none"></i>
             <span class="mode-text">Dark Mode</span>
         </button>
+        
+        <!-- Quick Search -->
+        <div class="search-container">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" class="form-control search-input" id="quick-search" placeholder="Search services...">
+        </div>
     </div>
     
     <!-- Panels Section -->
@@ -118,5 +124,69 @@
 
 <!-- Theme toggle JS -->
 <script src="theme.js"></script>
+
+<!-- Search functionality and keyboard shortcuts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick search functionality
+    const searchInput = document.getElementById('quick-search');
+    const cards = document.querySelectorAll('.card');
+    
+    searchInput.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const description = card.querySelector('.card-text').textContent.toLowerCase();
+            const cardContainer = card.closest('.col-md-5');
+            
+            if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                cardContainer.style.display = '';
+            } else {
+                cardContainer.style.display = 'none';
+            }
+        });
+    });
+    
+    // Keyboard shortcuts for navigation (press number to go to corresponding card)
+    document.addEventListener('keydown', function(e) {
+        // Only handle number keys 1-9
+        if (e.key >= '1' && e.key <= '9' && document.activeElement !== searchInput) {
+            const index = parseInt(e.key) - 1;
+            const visibleCards = Array.from(cards).filter(card => 
+                card.closest('.col-md-5').style.display !== 'none'
+            );
+            
+            if (visibleCards[index]) {
+                const link = visibleCards[index].querySelector('.btn');
+                if (link) link.click();
+            }
+        }
+        
+        // Pressing '/' focuses the search box
+        if (e.key === '/' && document.activeElement !== searchInput) {
+            e.preventDefault();
+            searchInput.focus();
+        }
+        
+        // Pressing Escape clears the search
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('keyup'));
+            searchInput.blur();
+        }
+    });
+    
+    // Add number badges to cards for keyboard shortcuts
+    cards.forEach((card, index) => {
+        const badge = document.createElement('span');
+        badge.className = 'position-absolute top-0 start-0 badge rounded-pill bg-primary m-2';
+        badge.textContent = index + 1;
+        badge.style.zIndex = 1;
+        card.style.position = 'relative';
+        card.prepend(badge);
+    });
+});
+</script>
 </body>
 </html>
