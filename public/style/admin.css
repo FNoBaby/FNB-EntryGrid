@@ -168,6 +168,11 @@ body.dark-mode .modal-body p {
 
 body.dark-mode .table thead th {
   background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-light);
+}
+
+body.dark-mode thead tr th {
+  color: var(--text-light) !important;
 }
 
 .table tbody td {
