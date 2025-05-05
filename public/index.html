@@ -61,7 +61,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">Cockpit</h5>
                         <p class="card-text">Access the Cockpit system management interface for server administration.</p>
-                        <a href="https://cockpit.fnobaby.dev" class="btn btn-primary w-100">
+                        <a href="${URL_COCKPIT}" class="btn btn-primary w-100">
                             <i class="bi bi-gear-fill me-2"></i>Go to Cockpit
                         </a>
                     </div>
@@ -75,7 +75,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">Pterodactyl</h5>
                         <p class="card-text">Access the Pterodactyl panel for game server management and monitoring.</p>
-                        <a href="https://panel.fnobaby.dev" class="btn btn-primary w-100">
+                        <a href="${URL_PTERODACTYL}" class="btn btn-primary w-100">
                             <i class="bi bi-controller me-2"></i>Go to Pterodactyl
                         </a>
                     </div>
@@ -91,7 +91,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">NetData</h5>
                         <p class="card-text">Real-time performance monitoring for your server with detailed metrics and analytics.</p>
-                        <a href="https://netdata.fnobaby.dev" class="btn btn-primary w-100">
+                        <a href="${URL_NETDATA}" class="btn btn-primary w-100">
                             <i class="bi bi-graph-up me-2"></i>Go to NetData
                         </a>
                     </div>
@@ -105,7 +105,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">FileBrowser</h5>
                         <p class="card-text">Web-based file manager for browsing, uploading, and managing server files.</p>
-                        <a href="https://filebrowser.fnobaby.dev" class="btn btn-primary w-100">
+                        <a href="${URL_FILEBROWSER}" class="btn btn-primary w-100">
                             <i class="bi bi-folder2-open me-2"></i>Go to FileBrowser
                         </a>
                     </div>
@@ -119,12 +119,29 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">Portainer</h5>
                         <p class="card-text">Container management platform for Docker environments with easy-to-use interface.</p>
-                        <a href="https://portainer.fnobaby.dev" class="btn btn-primary w-100">
+                        <a href="${URL_PORTAINER}" class="btn btn-primary w-100">
                             <i class="bi bi-box-seam me-2"></i>Go to Portainer
                         </a>
                     </div>
                 </div>
             </div>
+            
+            <!-- Card for WireGuard -->
+            <div class="col-md-5 col-lg-4">
+                <div class="card">
+                    <div class="card-img-top d-flex align-items-center justify-content-center pt-4" style="height: 160px;">
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size: 5rem;"></i>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">WireGuard VPN</h5>
+                        <p class="card-text">Secure, modern VPN for accessing internal resources and services remotely.</p>
+                        <a href="${URL_WIREGUARD}" class="btn btn-primary w-100">
+                            <i class="bi bi-shield-fill-check me-2"></i>Go to WireGuard
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </section>
     
@@ -139,7 +156,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">GPON Router</h5>
                         <p class="card-text">Access the GPON router configuration interface for network settings.</p>
-                        <a href="http://192.168.1.254" class="btn btn-primary w-100">
+                        <a href="${URL_GPON_ROUTER}" class="btn btn-primary w-100">
                             <i class="bi bi-wifi me-2"></i>Go to GPON Router
                         </a>
                     </div>
@@ -153,7 +170,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">Xiaomi Router</h5>
                         <p class="card-text">Access the Xiaomi Router management interface for advanced settings.</p>
-                        <a href="http://192.168.31.1" class="btn btn-primary w-100">
+                        <a href="${URL_XIAOMI_ROUTER}" class="btn btn-primary w-100">
                             <i class="bi bi-hdd-network me-2"></i>Go to Xiaomi Router
                         </a>
                     </div>
@@ -167,7 +184,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title">Cloudflare</h5>
                         <p class="card-text">Manage DNS, security settings, and performance with Cloudflare dashboard.</p>
-                        <a href="https://dash.cloudflare.com" class="btn btn-primary w-100">
+                        <a href="${URL_CLOUDFLARE}" class="btn btn-primary w-100">
                             <i class="bi bi-cloud me-2"></i>Go to Cloudflare
                         </a>
                     </div>

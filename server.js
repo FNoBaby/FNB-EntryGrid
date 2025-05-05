@@ -97,7 +97,15 @@ const initializeDatabase = async () => {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
         styleSrc: ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "https://cdn-icons-png.flaticon.com"],
+        imgSrc: [
+          "'self'", 
+          "data:", 
+          "https://cdn-icons-png.flaticon.com",
+          "https://cdn.worldvectorlogo.com",
+          "https://assets.ubuntu.com",
+          "https://pterodactyl.io",
+          "https://avatars.githubusercontent.com"
+        ],
         connectSrc: ["'self'"],
         fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
         objectSrc: ["'none'"],
@@ -405,10 +413,30 @@ const initializeDatabase = async () => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
   });
 
+  // Import config service for URLs
+  const { serviceUrls } = require('./services/configService');
+
   // Protected dashboard route - MUST come before static file serving
   app.get('/', isAuthenticated, (req, res) => {
     console.log(`Serving dashboard to authenticated user: ${req.session.user.username}`);
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    
+    // Instead of directly serving the static file, use a templating approach
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    fs.readFile(indexPath, 'utf8', (err, data) => {
+      if (err) {
+        console.error('Error reading index.html:', err);
+        return res.status(500).send('Server Error');
+      }
+      
+      // Replace URL placeholders with actual URLs from environment
+      let rendered = data;
+      Object.keys(serviceUrls).forEach(key => {
+        const placeholder = new RegExp(`\\$\\{URL_${key.toUpperCase()}\\}`, 'g');
+        rendered = rendered.replace(placeholder, serviceUrls[key]);
+      });
+      
+      res.send(rendered);
+    });
   });
 
   // User info API 
@@ -423,6 +451,34 @@ const initializeDatabase = async () => {
 
   // Catch-all route to redirect unmatched routes to login if not authenticated
   app.use((req, res, next) => {
+    // Block common exploit/scan patterns
+    const blockedPaths = [
+      '/wp-', '/wordpress', '/wp-admin', '/wp-login', 
+      '/admin/config', '/admin/config.php',
+      '/phpmyadmin', '/mysql', '/db', 
+      '/.env', '/config', '/.git',
+      '/xmlrpc.php', '/shell', '/admin.php',
+      '/setup-config.php', '/install.php',
+      '/.well-known/acme-challenge', '/boaform',
+      '/solr', '/vendor', '/cgi-bin', '/status',
+      '/jenkins', '/manager', '/api/jsonws'
+    ];
+    
+    // Additional suspicious request methods and paths
+    if (req.method !== 'GET' && req.method !== 'POST') {
+      console.log(`Blocked suspicious ${req.method} request to: ${req.path}`);
+      return res.status(404).send('Not Found');
+    }
+    
+    // Check if the request path includes any of the blocked patterns
+    const isBlockedPath = blockedPaths.some(path => req.path.includes(path));
+    
+    if (isBlockedPath) {
+      console.log(`Blocked suspicious request to: ${req.path}`);
+      // Return a 404 error instead of redirecting to login
+      return res.status(404).send('Not Found');
+    }
+    
     if (req.session.user) {
       return next();
     }
