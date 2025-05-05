@@ -103,22 +103,37 @@ const initializeDatabase = async () => {
   app.use(express.json());
 
   // MySQL session store options
-  const sessionStoreOptions = {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'fnobaby',
-    createDatabaseTable: true,
-    schema: {
-      tableName: 'sessions',
-      columnNames: {
-        session_id: 'session_id',
-        expires: 'expires',
-        data: 'data'
+  const sessionStoreOptions = process.env.DB_CONNECTION_STRING
+    ? {
+        // Use connection string
+        connectionString: process.env.DB_CONNECTION_STRING,
+        createDatabaseTable: true,
+        schema: {
+          tableName: 'sessions',
+          columnNames: {
+            session_id: 'session_id',
+            expires: 'expires',
+            data: 'data'
+          }
+        }
       }
-    }
-  };
+    : {
+        // Use individual parameters
+        host: process.env.DB_HOST,
+        port: parseInt(process.env.DB_PORT || '3306'),
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        createDatabaseTable: true,
+        schema: {
+          tableName: 'sessions',
+          columnNames: {
+            session_id: 'session_id',
+            expires: 'expires',
+            data: 'data'
+          }
+        }
+      };
 
   // Session configuration with MySQL store
   app.use(session({
