@@ -92,7 +92,19 @@ const initializeDatabase = async () => {
 
   // Security middleware - stricter in production
   app.use(helmet({
-    contentSecurityPolicy: isProd // Enable CSP in production, disable in development
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+        styleSrc: ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https://cdn-icons-png.flaticon.com"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      }
+    }
   }));
 
   // Compress responses
@@ -138,18 +150,50 @@ const initializeDatabase = async () => {
   // Session configuration with MySQL store
   app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
-    resave: false,
+    resave: true,                // Changed to true to ensure session is saved
     saveUninitialized: false,
-    store: new MySQLStore(sessionStoreOptions),
+    store: new MySQLStore({
+      // Direct connection options instead of using connectionString
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '3306'),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      createDatabaseTable: true,
+      schema: {
+        tableName: 'sessions',
+        columnNames: {
+          session_id: 'session_id',
+          expires: 'expires',
+          data: 'data'
+        }
+      },
+      // Add these options for better session handling
+      clearExpired: true,
+      checkExpirationInterval: 900000, // Check every 15 minutes
+      expiration: 86400000, // Session expiration (24 hours)
+      endConnectionOnClose: false,
+    }),
     cookie: { 
-      secure: isProd, // Only use secure cookies in production
-      maxAge: isProd ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000, // 7 days in prod, 24 hours in dev
+      secure: true,  // Set to true since you're using SSL through Nginx
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'                // Explicitly set path
     },
-    name: 'fnobaby.sid', // Custom session cookie name
-    rolling: true // Refresh cookie expiration on each request
+    name: 'fnobaby.sid',       // Custom session cookie name
+    rolling: true,              // Refresh cookie expiration on each request
+    proxy: true  // Trust the reverse proxy (Nginx)
   }));
+
+  // Add headers for proper proxy handling
+  app.set('trust proxy', 1); // Trust first proxy (Nginx)
+
+  // Add this middleware to log cookies on every request for debugging
+  app.use((req, res, next) => {
+    console.log('Request cookies:', req.headers.cookie);
+    next();
+  });
 
   // Debugging middleware
   if (DEBUG) {
@@ -232,7 +276,7 @@ const initializeDatabase = async () => {
           role: user.role
         };
         
-        // Explicitly save the session
+        // Explicitly save the session with error handling
         await new Promise((resolve, reject) => {
           req.session.save(err => {
             if (err) {
@@ -245,12 +289,23 @@ const initializeDatabase = async () => {
         });
         
         console.log(`User ${username} logged in successfully. Session ID: ${req.session.id}`);
+        console.log('Session data at login:', req.session);
         
         // Get return path and delete it from session
         const returnTo = req.session.returnTo || '/';
         delete req.session.returnTo;
         
-        return res.json({ success: true, redirect: returnTo });
+        // Force session save again after modifying it
+        await new Promise(resolve => req.session.save(resolve));
+        
+        // Use a server-side redirect instead of client-side
+        if (req.xhr || req.headers.accept.includes('json')) {
+          // API/AJAX request
+          return res.json({ success: true, redirect: returnTo });
+        } else {
+          // Regular form submission
+          return res.redirect(returnTo);
+        }
       } else {
         console.log(`Invalid login attempt: wrong password for user '${username}'`);
         return res.status(401).json({ success: false, message: 'Invalid username or password' });
