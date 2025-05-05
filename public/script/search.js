@@ -127,4 +127,16 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholderIndex = (placeholderIndex + 1) % placeholders.length;
         }, 3000);
     }
+
+    // Check for theme toggle and add event listener
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            // Detect if document has 'dark-mode' class after toggle
+            setTimeout(() => {
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+            }, 50);
+        });
+    }
 });
