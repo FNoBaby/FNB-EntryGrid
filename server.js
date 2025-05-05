@@ -431,7 +431,9 @@ const initializeDatabase = async () => {
       // Replace URL placeholders with actual URLs from environment
       let rendered = data;
       Object.keys(serviceUrls).forEach(key => {
-        const placeholder = new RegExp(`\\$\\{URL_${key.toUpperCase()}\\}`, 'g');
+        // Fix the regex pattern to correctly match the placeholders
+        // The previous pattern was incorrectly escaping the curly braces
+        const placeholder = new RegExp('\\${URL_' + key.toUpperCase() + '}', 'g');
         rendered = rendered.replace(placeholder, serviceUrls[key]);
       });
       
