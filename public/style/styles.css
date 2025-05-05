@@ -1,0 +1,122 @@
+/* Main Styles */
+body {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.card {
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .card {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border-color: #333;
+}
+
+.card-img-top {
+    height: 160px;
+    object-fit: contain;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+body.dark-mode .card-img-top {
+    background-color: #2a2a2a;
+}
+
+.section-heading {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+body.dark-mode .btn-outline-secondary {
+    color: #e0e0e0;
+    border-color: #666;
+}
+
+/* Search styles */
+.search-container {
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    color: #6c757d;
+}
+
+.search-input {
+    padding-left: 35px;
+}
+
+body.dark-mode .search-input {
+    background-color: #333;
+    color: #ffffff;
+    border-color: #555;
+}
+
+body.dark-mode .search-input::placeholder {
+    color: #aaa;
+}
+
+/* Theme toggle button */
+.dark-mode .dark-icon {
+    display: none;
+}
+
+.dark-mode .light-icon {
+    display: inline-block !important;
+}
+
+/* Smooth transitions for search filtering */
+.col-md-5 {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.search-hidden {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+    position: absolute;
+}
+
+/* Ensure row maintains proper layout during transitions */
+.row.search-active {
+    min-height: 300px;
+    position: relative;
+}
+
+/* Optional: Add a "no results" message */
+.no-results-message {
+    display: none;
+    text-align: center;
+    width: 100%;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+body.dark-mode .no-results-message {
+    color: #adb5bd;
+}
+
+/* Footer styles */
+.footer {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .footer {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0;
+}
+
+body.dark-mode .footer .text-muted {
+    color: #adb5bd !important;
+}
