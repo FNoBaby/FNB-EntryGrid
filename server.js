@@ -175,7 +175,9 @@ const initializeDatabase = async () => {
       endConnectionOnClose: false,
     }),
     cookie: { 
-      secure: true,  // Set to true since you're using SSL through Nginx
+      // In Pterodactyl+Nginx setup, securing cookies can be tricky
+      // Using 'auto' lets Express decide based on request protocol
+      secure: 'auto',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       sameSite: 'lax',
@@ -185,6 +187,23 @@ const initializeDatabase = async () => {
     rolling: true,              // Refresh cookie expiration on each request
     proxy: true  // Trust the reverse proxy (Nginx)
   }));
+
+  // Set up for multiple proxies if needed (Pterodactyl + Nginx)
+  app.set('trust proxy', 2);
+  
+  // Add a header parsing middleware to detect the actual protocol
+  app.use((req, res, next) => {
+    // Log headers helpful for debugging proxy issues
+    if (DEBUG) {
+      console.log('[DEBUG] Headers:', {
+        'x-forwarded-for': req.headers['x-forwarded-for'],
+        'x-forwarded-proto': req.headers['x-forwarded-proto'],
+        'x-forwarded-host': req.headers['x-forwarded-host'],
+        'host': req.headers['host']
+      });
+    }
+    next();
+  });
 
   // Add headers for proper proxy handling
   app.set('trust proxy', 1); // Trust first proxy (Nginx)

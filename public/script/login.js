@@ -39,14 +39,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ username, password })
                 });
                 
+                // Check if the response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Received non-JSON response from server');
+                }
+                
                 const data = await response.json();
                 
                 if (data.success) {
+                    // Redirect to the dashboard or specified route
                     window.location.href = data.redirect || '/';
                 } else {
                     // Show error message
@@ -59,16 +67,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     loginText.textContent = 'Sign In';
                 }
             } catch (error) {
+                console.error('Login error:', error);
+                
                 // Show error message
-                loginError.textContent = 'An error occurred. Please try again.';
+                loginError.textContent = 'An error occurred during login. Please try again.';
                 loginError.classList.remove('d-none');
                 
                 // Reset button state
                 loginButton.disabled = false;
                 loginSpinner.classList.add('d-none');
                 loginText.textContent = 'Sign In';
-                
-                console.error('Login error:', error);
             }
         });
     }
