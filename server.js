@@ -176,7 +176,7 @@ const initializeDatabase = async () => {
           data: 'data'
         }
       },
-      // Add these options for better session handling
+      // Add these options directly to the main object, not in an options property
       clearExpired: true,
       checkExpirationInterval: 900000, // Check every 15 minutes
       expiration: 86400000, // Session expiration (24 hours)
