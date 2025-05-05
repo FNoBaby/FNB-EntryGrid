@@ -27,8 +27,19 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
   },
   dialectOptions: {
     charset: 'utf8mb4',
-    collate: 'utf8mb4_unicode_ci'
-  }
+    // Ensure proper handling of datetime/timestamps
+    dateStrings: true,
+    typeCast: true,
+    // Increase timeout for session operations
+    connectTimeout: 60000,
+    options: {
+      // Enable keeping the connection alive
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000
+    }
+  },
+  // Set timezone to UTC to avoid timezone issues
+  timezone: '+00:00'
 });
 
 // Test database connection

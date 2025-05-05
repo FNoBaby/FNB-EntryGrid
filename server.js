@@ -147,7 +147,8 @@ const initializeDatabase = async () => {
       httpOnly: true,
       sameSite: 'lax'
     },
-    name: 'fnobaby.sid' // Custom session cookie name
+    name: 'fnobaby.sid', // Custom session cookie name
+    rolling: true // Refresh cookie expiration on each request
   }));
 
   // Debugging middleware
@@ -231,7 +232,19 @@ const initializeDatabase = async () => {
           role: user.role
         };
         
-        console.log(`User ${username} logged in successfully`);
+        // Explicitly save the session
+        await new Promise((resolve, reject) => {
+          req.session.save(err => {
+            if (err) {
+              console.error('Error saving session:', err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+        
+        console.log(`User ${username} logged in successfully. Session ID: ${req.session.id}`);
         
         // Get return path and delete it from session
         const returnTo = req.session.returnTo || '/';
@@ -258,6 +271,30 @@ const initializeDatabase = async () => {
       res.redirect('/login');
     });
   });
+
+  // Debugging middleware to monitor session consistency
+  if (DEBUG) {
+    app.use((req, res, next) => {
+      const sessionId = req.session.id;
+      const hasUser = !!req.session.user;
+      
+      console.log(`[DEBUG] Request: ${req.method} ${req.url}`);
+      console.log(`[DEBUG] Session ID: ${sessionId}; Has user: ${hasUser}`);
+      
+      if (hasUser) {
+        console.log(`[DEBUG] Logged in as: ${req.session.user.username}`);
+      }
+      
+      // Add session consistency check to response
+      const originalEnd = res.end;
+      res.end = function(...args) {
+        console.log(`[DEBUG] Response for ${req.url} - Session ID: ${req.session.id}; Has user: ${!!req.session.user}`);
+        return originalEnd.apply(this, args);
+      };
+      
+      next();
+    });
+  }
 
   // Debug routes - only available in development
   if (!isProd || DEBUG) {
