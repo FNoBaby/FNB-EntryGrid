@@ -6,15 +6,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add a "no results" message to each row
     cardRows.forEach(row => {
-        const noResultsMsg = document.createElement('div');
-        noResultsMsg.className = 'no-results-message';
-        noResultsMsg.textContent = 'No matching services found';
-        row.appendChild(noResultsMsg);
+        if (!row.querySelector('.no-results-message')) {
+            const noResultsMsg = document.createElement('div');
+            noResultsMsg.className = 'no-results-message';
+            noResultsMsg.textContent = 'No matching services found';
+            row.appendChild(noResultsMsg);
+        }
     });
     
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        
+    // Debounce function to limit how often search is processed
+    function debounce(func, wait) {
+        let timeout;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func.apply(context, args);
+            }, wait);
+        };
+    }
+    
+    // Filter function
+    const filterCards = debounce(function(searchTerm) {
         // Add search-active class to rows when searching
         cardRows.forEach(row => {
             if (searchTerm) {
@@ -26,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset no results message
             const noResultsMsg = row.querySelector('.no-results-message');
             noResultsMsg.style.display = 'none';
+            noResultsMsg.classList.remove('visible');
         });
         
         // Group cards by their parent row
@@ -60,15 +75,32 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show "no results" message if needed
-        matchesInRow.forEach((matches, row) => {
-            const noResultsMsg = row.querySelector('.no-results-message');
-            if (searchTerm && matches === 0) {
-                noResultsMsg.style.display = 'block';
-            } else {
-                noResultsMsg.style.display = 'none';
-            }
-        });
+        // Show "no results" message if needed with delay
+        setTimeout(() => {
+            matchesInRow.forEach((matches, row) => {
+                const noResultsMsg = row.querySelector('.no-results-message');
+                if (searchTerm && matches === 0) {
+                    noResultsMsg.style.display = 'block';
+                    // Trigger animation after display is set
+                    setTimeout(() => {
+                        noResultsMsg.classList.add('visible');
+                    }, 10);
+                } else {
+                    noResultsMsg.classList.remove('visible');
+                    setTimeout(() => {
+                        if (!noResultsMsg.classList.contains('visible')) {
+                            noResultsMsg.style.display = 'none';
+                        }
+                    }, 400); // Match the CSS transition duration
+                }
+            });
+        }, 300); // Delay to allow card animations to complete
+    }, 200); // Debounce time in ms
+    
+    // Search input event
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        filterCards(searchTerm);
     });
     
     // Add clear search button functionality
@@ -76,7 +108,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear on Escape key
         if (e.key === 'Escape') {
             this.value = '';
-            this.dispatchEvent(new Event('input'));
+            filterCards('');
         }
     });
+    
+    // Add animated placeholder text
+    const placeholders = [
+        'Search services...',
+        'Type to filter...',
+        'Find by name...',
+        'Search by function...'
+    ];
+    
+    let placeholderIndex = 0;
+    if (searchInput) {
+        setInterval(() => {
+            searchInput.setAttribute('placeholder', placeholders[placeholderIndex] + ' (ESC to clear)');
+            placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+        }, 3000);
+    }
 });
