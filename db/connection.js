@@ -11,8 +11,13 @@ let sequelize;
 // Create Sequelize instance using connection string if available
 if (connectionString) {
   console.log('Using database connection string');
+  
+  // Extract the dialect from the connection string or default to mysql
+  const dialectMatch = connectionString.match(/^([a-zA-Z]+):\/\//);
+  const dialect = dialectMatch ? dialectMatch[1] : 'mysql';
+  
   sequelize = new Sequelize(connectionString, {
-    dialect: 'mysql',
+    dialect: dialect, // Explicitly setting the dialect
     logging: process.env.DEBUG === 'true' ? console.log : false,
     pool: {
       max: 5,
@@ -21,7 +26,6 @@ if (connectionString) {
       idle: 10000
     },
     dialectOptions: {
-      // Additional options for handling special characters in the connection string
       charset: 'utf8mb4',
       collate: 'utf8mb4_unicode_ci'
     }
