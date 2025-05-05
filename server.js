@@ -7,7 +7,7 @@ const MySQLStore = require('express-mysql-session')(session);
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 const fs = require('fs');
-const { connectDB } = require('./db/connection');
+const { sequelize, connectDB } = require('./db/connection');
 const User = require('./models/User');
 
 // Load environment variables
@@ -47,7 +47,7 @@ const initializeDatabase = async () => {
     
     // Sync models with database (creates tables if they don't exist)
     console.log('Syncing database models...');
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });  // Use the imported sequelize instance
     console.log('Database tables synced successfully');
     
     // Check if admin user exists, create if not
