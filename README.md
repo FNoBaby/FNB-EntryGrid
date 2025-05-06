@@ -114,6 +114,146 @@ When adding a card, you can configure:
 - Content Security Policy is implemented to prevent XSS attacks
 - All API endpoints are protected against unauthorized access
 
+## Docker Deployment
+
+You can run this application in a Docker container for easier deployment and isolation.
+
+### Using Docker Compose
+
+1. Create a `docker-compose.yml` file in the project root:
+
+```yaml
+version: '3'
+services:
+  dashboard:
+    build: .
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - NODE_ENV=production
+      - ENVIRONMENT=PROD
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=dashboard_db
+      - DB_USER=dashuser
+      - DB_PASSWORD=your_secure_password
+      - SESSION_SECRET=your_secure_session_secret
+    depends_on:
+      - db
+    restart: unless-stopped
+    
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=dashboard_db
+      - MYSQL_USER=dashuser
+      - MYSQL_PASSWORD=your_secure_password
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  db_data:
+```
+
+2. Create a `Dockerfile` in the project root:
+
+```dockerfile
+FROM node:16-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install --production
+
+COPY . .
+
+EXPOSE 3002
+
+CMD ["npm", "start"]
+```
+
+3. Build and start the containers:
+
+```bash
+docker-compose up -d
+```
+
+4. Access the application at http://localhost:3002 (or your configured port)
+
+### Using Docker without Compose
+
+1. Create the `Dockerfile` as shown above
+
+2. Build the Docker image:
+
+```bash
+docker build -t server-dashboard .
+```
+
+3. Run the container:
+
+```bash
+docker run -p 3002:3002 \
+  -e PORT=3002 \
+  -e NODE_ENV=production \
+  -e ENVIRONMENT=PROD \
+  -e DB_HOST=your_db_host \
+  -e DB_PORT=3306 \
+  -e DB_NAME=dashboard_db \
+  -e DB_USER=your_db_user \
+  -e DB_PASSWORD=your_db_password \
+  -e SESSION_SECRET=your_session_secret \
+  --name server-dashboard \
+  -d server-dashboard
+```
+
+## Pterodactyl Deployment
+
+You can deploy this application on a Pterodactyl panel using a NodeJS server egg.
+
+### Setup Instructions
+
+1. In your Pterodactyl panel, create a new server using a NodeJS egg
+
+2. Server requirements:
+   - NodeJS 14+ 
+   - Minimum 512MB RAM
+   - 1GB disk space
+
+3. Upload your application files to the server:
+   - Either using the file manager in the panel
+   - Or via SFTP
+   - Or by connecting your GitHub repository
+
+4. Configure the following startup variables in the panel's Startup tab:
+   - Make sure the startup command is set to `npm start`
+
+5. Configure environment variables:
+   - Add all required environment variables from the `.env` file in the Startup tab's Environment Variables section
+   - Important: Make sure to set `DB_HOST` to point to your MySQL server's address
+
+6. Start the server from the Pterodactyl panel
+
+### Port Forwarding
+
+The application uses the port specified in your `.env` file (default: 3002). Make sure:
+
+1. This port is allocated in your Pterodactyl server configuration
+2. The port is forwarded through your router if you're hosting at home
+3. Any firewalls are configured to allow traffic on this port
+
+**Note:** If you change the port in your `.env` file, you must make sure this new port:
+- Is allocated in Pterodactyl
+- Is not already in use by another application
+- Is properly forwarded through any firewalls or routers
+
+Using a reverse proxy like Nginx is recommended for exposing the application securely with SSL.
+
 ## License
 
 This project is licensed under the MIT License - a permissive open-source license developed at the Massachusetts Institute of Technology. This license allows you to:
