@@ -13,10 +13,22 @@
   --transition: all 0.3s ease;
 }
 
+/* General styles - fix scrolling issue */
 body {
   transition: var(--transition);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  padding-bottom: 60px;
+  /* Adjust bottom padding to prevent extra scroll */
+  padding-bottom: 80px; 
+  margin-bottom: 0; /* Remove this margin - it was causing double spacing */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+html {
+  position: relative;
+  min-height: 100%;
 }
 
 body.dark-mode {
@@ -49,16 +61,17 @@ body.dark-mode .footer p:not(.text-muted) {
 }
 
 .card {
-  transition: var(--transition);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   border-radius: var(--border-radius);
   border: none;
   box-shadow: var(--box-shadow);
   overflow: hidden;
+  height: 100%;
 }
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 body.dark-mode .card {
@@ -66,10 +79,14 @@ body.dark-mode .card {
   border-color: #333;
 }
 
+[data-bs-theme="dark"] .card:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
 .card-img-top {
   height: 160px;
   object-fit: contain;
-  padding: 1.5rem;
+  padding: 20px;
   background-color: var(--light-bg);
   transition: var(--transition);
 }
@@ -78,10 +95,15 @@ body.dark-mode .card-img-top {
   background-color: #2a2a2a;
 }
 
+[data-bs-theme="dark"] .card-img-top {
+  background-color: #343a40;
+}
+
 .section-heading {
   position: relative;
   margin-bottom: 2rem;
   font-weight: 700;
+  padding-bottom: 10px;
 }
 
 .section-heading:after {
@@ -96,6 +118,22 @@ body.dark-mode .card-img-top {
   border-radius: 2px;
 }
 
+.section-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background-color: #007bff;
+  border-radius: 3px;
+}
+
+[data-bs-theme="dark"] .section-heading::after {
+  background-color: #0d6efd;
+}
+
 body.dark-mode .btn-outline-secondary {
   color: #e0e0e0;
   border-color: #666;
@@ -104,20 +142,21 @@ body.dark-mode .btn-outline-secondary {
 /* Search styles */
 .search-container {
   position: relative;
-  max-width: 450px;
-  margin: 1.5rem auto;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .search-icon {
   position: absolute;
-  left: 15px;
-  top: 15px;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #6c757d;
 }
 
 .search-input {
-  padding-left: 40px;
-  border-radius: 9999px;
+  padding-left: 35px;
+  border-radius: 20px;
   height: 48px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   transition: var(--transition);
@@ -206,21 +245,34 @@ body.dark-mode .no-results-message {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Footer styles */
+/* Improved footer styling with better fixed positioning */
 .footer {
   transition: var(--transition);
-  padding: 2rem 0;
-  margin-top: 3rem;
+  padding: 1rem 0; /* Reduced padding */
   font-size: 0.9rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  min-height: 50px; /* Reduced min-height */
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  z-index: 1000;
 }
 
+/* Ensure dark mode is properly applied to footer */
+[data-bs-theme="dark"] .footer {
+  background-color: #212529 !important;
+  border-top: 1px solid #424242;
+  color: #f8f9fa;
+}
+
+/* Maintain backward compatibility with body.dark-mode */
 body.dark-mode .footer {
-  background-color: var(--dark-card) !important;
-  color: #e0e0e0;
-}
-
-body.dark-mode .footer .text-muted {
-  color: #adb5bd !important;
+  background-color: #212529 !important;
+  border-top: 1px solid #424242;
+  color: #f8f9fa;
 }
 
 /* Modern card styling */
@@ -295,4 +347,298 @@ body.dark-mode #theme-toggle {
 /* Button group styling */
 .gap-2 > * {
   margin: 0 0.25rem;
+}
+
+/* Make sure content doesn't hide behind footer on smaller screens */
+@media (max-height: 700px) {
+  body {
+    margin-bottom: 120px;
+  }
+}
+
+/* Main content container */
+.container {
+  flex: 1 0 auto;
+  padding-bottom: 1rem; /* Add small padding at container bottom */
+}
+
+/* Fix for short content pages */
+@media (min-height: 700px) {
+  .container.content-container {
+    min-height: calc(100vh - 160px); /* Adjust this value based on header + footer height */
+  }
+}
+
+/* Dark mode styles for modals */
+[data-bs-theme="dark"] .modal-content {
+  background-color: #212529;
+  color: #f8f9fa;
+  border-color: #495057;
+}
+
+[data-bs-theme="dark"] .modal-header {
+  border-bottom-color: #343a40;
+}
+
+[data-bs-theme="dark"] .modal-footer {
+  border-top-color: #343a40;
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+  background-color: #2b3035;
+  border-color: #495057;
+  color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+  background-color: #2b3035;
+  color: #f8f9fa;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] .form-text {
+  color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+  color: #6c757d;
+}
+
+[data-bs-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Modal transition animation */
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out;
+}
+
+.modal.fade .modal-content {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Better form styling for both themes */
+.form-label {
+  font-weight: 500;
+}
+
+/* Custom styling for details summary element */
+details summary {
+  cursor: pointer;
+  color: #0d6efd;
+  padding: 5px 0;
+}
+
+[data-bs-theme="dark"] details summary {
+  color: #6ea8fe;
+}
+
+details summary:hover {
+  text-decoration: underline;
+}
+
+/* Icon previews in the form */
+.icon-preview {
+  font-size: 1.5rem;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+/* Save/Delete button styling improvements */
+#save-card-btn,
+#save-section-btn {
+  min-width: 80px;
+}
+
+/* Responsive adjustments for modal */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+}
+
+/* Hover-reveal buttons for sections and cards */
+.section-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+.section-controls {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.section-header:hover .section-controls {
+  opacity: 1;
+}
+
+/* Card edit button hover effects */
+.card {
+  position: relative;
+}
+
+.edit-card-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  transform: scale(0.9);
+  z-index: 2;
+  /* Light mode styling (default) */
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #000;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode styling for edit button */
+[data-bs-theme="dark"] .edit-card-btn {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Handle legacy body.dark-mode class */
+body.dark-mode .edit-card-btn {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card:hover .edit-card-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Add card button (at section level) */
+.add-card-btn {
+  opacity: 0.7;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+}
+
+.section-header:hover .add-card-btn {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* When edit buttons are in a fixed position (like card bottom) */
+.card-footer .edit-card-btn {
+  position: static;
+  opacity: 0.7;
+}
+
+.card:hover .card-footer .edit-card-btn {
+  opacity: 1;
+}
+
+/* Error modal styling */
+#errorModal .modal-header {
+  border-bottom: none;
+}
+
+#errorModal .modal-body {
+  padding: 1.5rem;
+}
+
+#errorModal .bi-exclamation-triangle-fill {
+  flex-shrink: 0;
+}
+
+/* Dark mode styling for error modal */
+[data-bs-theme="dark"] #errorModal .modal-header {
+  background-color: #dc3545 !important;
+}
+
+[data-bs-theme="dark"] #errorModal .modal-content {
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+[data-bs-theme="dark"] #errorModal .text-danger {
+  color: #ff6b6b !important;
+}
+
+/* Handle legacy body.dark-mode class */
+body.dark-mode #errorModal .modal-header {
+  background-color: #dc3545 !important;
+}
+
+body.dark-mode #errorModal .modal-content {
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+body.dark-mode #errorModal .text-danger {
+  color: #ff6b6b !important;
+}
+
+/* Delete Confirmation Modal styling */
+#deleteConfirmModal .modal-header {
+  border-bottom: none;
+}
+
+#deleteConfirmModal .modal-body {
+  padding: 1.5rem;
+}
+
+#deleteConfirmModal .bi-exclamation-triangle-fill {
+  flex-shrink: 0;
+}
+
+#confirm-delete-btn {
+  transition: background-color 0.2s;
+}
+
+#confirm-delete-btn:hover {
+  background-color: #b02a37;
+}
+
+/* Dark mode styling for delete confirmation modal */
+[data-bs-theme="dark"] #deleteConfirmModal .modal-header {
+  background-color: #dc3545 !important;
+}
+
+[data-bs-theme="dark"] #deleteConfirmModal .modal-content {
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+[data-bs-theme="dark"] #deleteConfirmModal .text-danger {
+  color: #ff6b6b !important;
+}
+
+[data-bs-theme="dark"] #deleteConfirmModal .alert-warning {
+  background-color: #332701;
+  color: #ffda6a;
+  border-color: #664d03;
+}
+
+/* Handle legacy body.dark-mode class */
+body.dark-mode #deleteConfirmModal .modal-header {
+  background-color: #dc3545 !important;
+}
+
+body.dark-mode #deleteConfirmModal .modal-content {
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+body.dark-mode #deleteConfirmModal .text-danger {
+  color: #ff6b6b !important;
+}
+
+body.dark-mode #deleteConfirmModal .alert-warning {
+  background-color: #332701;
+  color: #ffda6a;
+  border-color: #664d03;
 }

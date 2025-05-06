@@ -1,6 +1,10 @@
-// Immediately apply dark mode if previously selected
+// Script to set theme before page load to prevent flash of wrong theme
 (function() {
-    if (localStorage.getItem('darkMode') === 'enabled') {
-        document.body.classList.add('dark-mode');
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-bs-theme', 'light');
     }
 })();
