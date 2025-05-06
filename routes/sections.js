@@ -15,12 +15,15 @@ function createSectionsRouter(pool) {
   global.cardDbConnected = !!pool;
 
   // Get all sections
-  router.get('/', (req, res) => {
-    withDatabaseCheck(pool, async (req, res, pool) => {
-      const [rows] = await pool.query('SELECT * FROM sections ORDER BY `order`');
-      res.json(rows);
-    })(req, res);
-  });
+  router.get('/', withDatabaseCheck(async (req, res, pool) => {
+    try {
+        const [sections] = await pool.query('SELECT * FROM sections ORDER BY `order` ASC');
+        res.json(sections);
+    } catch (error) {
+        console.error('Error fetching sections:', error);
+        res.status(500).json({ error: 'Failed to fetch sections' });
+    }
+  }));
 
   // Get a specific section
   router.get('/:id', (req, res) => {

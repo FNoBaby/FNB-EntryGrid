@@ -11,29 +11,28 @@ const { withDatabaseCheck } = require('../db/setup');
 function createCardsRouter(pool) {
   const router = express.Router();
 
-  // Get all cards
-  router.get('/', (req, res) => {
-    withDatabaseCheck(pool, async (req, res, pool) => {
-      try {
+  // GET all cards, optionally filtered by sectionId
+  router.get('/', withDatabaseCheck(async (req, res, pool) => {
+    try {
+        const { sectionId } = req.query;
+        
         let query = 'SELECT * FROM cards';
         const params = [];
         
-        // Filter by section if provided
-        if (req.query.sectionId) {
-          query += ' WHERE sectionId = ?';
-          params.push(req.query.sectionId);
+        if (sectionId) {
+            query += ' WHERE sectionId = ?';
+            params.push(sectionId);
         }
         
-        query += ' ORDER BY sectionId, `order`';
+        query += ' ORDER BY `order` ASC';
         
-        const [rows] = await pool.query(query, params);
-        res.json(rows);
-      } catch (err) {
-        console.error('Error getting cards:', err);
-        res.status(500).json({ error: 'Database operation failed', details: err.message });
-      }
-    })(req, res);
-  });
+        const [cards] = await pool.query(query, params);
+        res.json(cards);
+    } catch (error) {
+        console.error('Error fetching cards:', error);
+        res.status(500).json({ error: 'Failed to fetch cards' });
+    }
+  }));
 
   // Get a specific card
   router.get('/:id', (req, res) => {
