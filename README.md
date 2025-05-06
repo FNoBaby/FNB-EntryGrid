@@ -116,4 +116,17 @@ When adding a card, you can configure:
 
 ## License
 
-[Insert License Information Here]
+This project is licensed under the MIT License - a permissive open-source license developed at the Massachusetts Institute of Technology. This license allows you to:
+
+- Use the software for commercial purposes
+- Modify the software
+- Distribute the software
+- Use and modify the software in private
+
+The main requirement is that the license and copyright notice must be included in all copies of the software.
+
+## About
+
+Developed by FNB (F No Baby) as a centralized dashboard solution for server management and service organization.
+
+© 2025 FNB - All Rights Reserved

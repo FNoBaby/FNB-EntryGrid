@@ -91,6 +91,23 @@ body.dark-mode .card {
   transition: var(--transition);
 }
 
+/* Bootstrap icon containers within cards */
+.card .text-center.py-4 {
+  background-color: var(--light-bg);
+  transition: var(--transition);
+}
+
+/* Dark mode adjustments for card backgrounds */
+body.dark-mode .card-img-top,
+body.dark-mode .card .text-center.py-4 {
+  background-color: #2a2a2a;
+}
+
+[data-bs-theme="dark"] .card-img-top,
+[data-bs-theme="dark"] .card .text-center.py-4 {
+  background-color: #343a40;
+}
+
 body.dark-mode .card-img-top {
   background-color: #2a2a2a;
 }
@@ -297,11 +314,12 @@ body.dark-mode .footer {
   border-color: var(--primary-hover);
 }
 
-/* Better page header */
+/* Better page header - center alignment */
 .page-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid rgba(0,0,0,0.1);
+  text-align: center; /* Center align the header text */
 }
 
 body.dark-mode .page-header {
@@ -466,6 +484,9 @@ details summary:hover {
   text-align: center;
   margin-bottom: 1.5rem;
   padding: 0.5rem 0;
+  display: flex;
+  justify-content: center; /* Center the content */
+  align-items: center;
 }
 
 .section-controls {
@@ -479,6 +500,17 @@ details summary:hover {
 
 .section-header:hover .section-controls {
   opacity: 1;
+}
+
+/* Center cards within sections */
+.row {
+  justify-content: center; /* Center cards in row */
+}
+
+/* Make all section headers centered */
+h2 {
+  text-align: center;
+  width: 100%;
 }
 
 /* Card edit button hover effects */

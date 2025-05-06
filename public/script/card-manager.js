@@ -303,9 +303,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (card.iconType === 'image') {
             iconHtml = `<img src="${card.imageUrl}" class="card-img-top" alt="${card.title} Logo">`;
         } else {
+            // Use the card's iconColor property or default to blue
+            const iconColor = card.iconColor || '#0d6efd';
             iconHtml = `
                 <div class="card-img-top d-flex align-items-center justify-content-center pt-4" style="height: 160px;">
-                    <i class="bi ${card.bootstrapIcon} text-primary" style="font-size: 5rem;"></i>
+                    <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor} !important;"></i>
                 </div>
             `;
         }
@@ -346,6 +348,18 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('card-bootstrap-icon').value = card.bootstrapIcon || '';
         document.getElementById('card-button-icon').value = card.buttonIcon || '';
         document.getElementById('card-order').value = card.order;
+        
+        // Set the icon color if it exists
+        if (card.iconType === 'bootstrap') {
+            const colorPicker = document.getElementById('card-icon-color');
+            const colorHexInput = document.getElementById('card-icon-color-hex');
+            
+            // Use the card's iconColor or default to blue
+            const iconColor = card.iconColor || '#0d6efd';
+            
+            if (colorPicker) colorPicker.value = iconColor;
+            if (colorHexInput) colorHexInput.value = iconColor;
+        }
         
         // Toggle icon input fields based on selected icon type
         if (card.iconType === 'image') {
@@ -664,4 +678,394 @@ document.addEventListener('DOMContentLoaded', function() {
             toastContainer.remove();
         });
     }
+    
+    // Initialize color picker and icon preview functionality
+    function initializeIconPreviewAndColorPicker() {
+        // Get references to DOM elements
+        const bootstrapIconInput = document.getElementById('card-bootstrap-icon');
+        const iconPreview = document.getElementById('bootstrap-icon-preview');
+        const iconColorPicker = document.getElementById('card-icon-color');
+        const iconColorHex = document.getElementById('card-icon-color-hex');
+        
+        // Ensure all elements exist before adding event listeners
+        if (!bootstrapIconInput || !iconPreview) {
+            console.warn('Bootstrap icon elements not found in the DOM');
+            return;
+        }
+        
+        if (!iconColorPicker || !iconColorHex) {
+            console.warn('Color picker elements not found in the DOM');
+            return;
+        }
+        
+        console.log('Icon preview elements found:', {
+            bootstrapIconInput,
+            iconPreview,
+            iconColorPicker,
+            iconColorHex
+        });
+        
+        // Function to update the icon preview
+        function updateIconPreview() {
+            // Get current icon class and color
+            const iconClass = bootstrapIconInput.value.trim();
+            const iconColor = iconColorPicker.value || '#0d6efd';
+            
+            console.log('Updating icon preview:', { iconClass, iconColor });
+            
+            // Update icon class
+            iconPreview.className = 'bi';
+            if (iconClass) {
+                // Handle if user enters with or without the bi- prefix
+                if (iconClass.startsWith('bi-')) {
+                    iconPreview.classList.add(iconClass);
+                } else {
+                    iconPreview.classList.add('bi-' + iconClass);
+                }
+            } else {
+                iconPreview.classList.add('bi-box');
+            }
+            
+            // Update icon color with !important to override any CSS
+            iconPreview.style.color = iconColor + ' !important';
+            // Also set it as an attribute for debugging
+            iconPreview.setAttribute('data-color', iconColor);
+        }
+        
+        // Add event listeners
+        bootstrapIconInput.addEventListener('input', updateIconPreview);
+        
+        iconColorPicker.addEventListener('input', function() {
+            iconColorHex.value = this.value;
+            updateIconPreview();
+        });
+        
+        iconColorHex.addEventListener('input', function() {
+            // Validate hex color format
+            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i.test(this.value);
+            if (isValidHex) {
+                iconColorPicker.value = this.value;
+                updateIconPreview();
+            }
+        });
+        
+        iconColorHex.addEventListener('blur', function() {
+            let val = this.value.trim();
+            if (val && !val.startsWith('#')) {
+                val = '#' + val;
+                this.value = val;
+            }
+            
+            // Validate hex color format
+            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i.test(val);
+            if (!isValidHex && val) {
+                this.value = iconColorPicker.value;
+            } else if (isValidHex) {
+                iconColorPicker.value = val;
+            }
+            updateIconPreview();
+        });
+        
+        // Initialize preview
+        updateIconPreview();
+        
+        // Return the update function for use elsewhere
+        return updateIconPreview;
+    }
+    
+    // Initialize after DOM is fully loaded and after the card modal is shown
+    document.addEventListener('DOMContentLoaded', function() {
+        // Try initializing immediately
+        setTimeout(initializeIconPreviewAndColorPicker, 500);
+        
+        // Also initialize when the card modal is shown
+        const cardModal = document.getElementById('cardModal');
+        if (cardModal) {
+            cardModal.addEventListener('shown.bs.modal', function() {
+                setTimeout(initializeIconPreviewAndColorPicker, 100);
+            });
+        }
+    });
+});
+
+/**
+ * Card Manager - Handles CRUD operations for cards
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize card form event handlers
+    const cardForm = document.getElementById('card-form');
+    const saveCardBtn = document.getElementById('save-card-btn');
+    const cardModal = document.getElementById('cardModal') ? 
+                      new bootstrap.Modal(document.getElementById('cardModal')) : null;
+    
+    if (cardForm && saveCardBtn) {
+        cardForm.addEventListener('submit', (e) => e.preventDefault());
+        
+        saveCardBtn.addEventListener('click', async function() {
+            if (!validateCardForm()) return;
+            
+            const formData = new FormData(cardForm);
+            const cardData = {
+                id: formData.get('id'),
+                title: formData.get('title'),
+                description: formData.get('description'),
+                url: formData.get('url'),
+                iconType: formData.get('iconType'),
+                sectionId: formData.get('sectionId'),
+                order: formData.get('order') || 1
+            };
+            
+            // Set appropriate icon based on type
+            if (cardData.iconType === 'image') {
+                cardData.imageUrl = formData.get('imageUrl');
+                cardData.bootstrapIcon = null;
+                cardData.iconColor = null; // No color for image icons
+            } else {
+                cardData.bootstrapIcon = formData.get('bootstrapIcon');
+                cardData.imageUrl = null;
+                // Include the icon color when using Bootstrap icons
+                cardData.iconColor = formData.get('iconColor') || '#0d6efd';
+            }
+            
+            cardData.buttonIcon = formData.get('buttonIcon');
+            
+            try {
+                let response;
+                
+                if (cardData.id) {
+                    // Update existing card
+                    response = await fetch(`/api/cards/${cardData.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(cardData)
+                    });
+                } else {
+                    // Create new card
+                    response = await fetch('/api/cards', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(cardData)
+                    });
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save card');
+                }
+                
+                // Hide modal before reloading data
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('cardModal'));
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Trigger the dashboard to reload sections/cards
+                if (window.loadSections) {
+                    window.loadSections();
+                } else {
+                    // Fallback - just reload the page
+                    window.location.reload();
+                }
+                
+                // Show success message
+                showNotification('Card saved successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error saving card:', error);
+                showNotification(error.message, 'error');
+            }
+        });
+    }
+    
+    // Icon type toggle
+    const iconTypeSelect = document.getElementById('card-icon-type');
+    if (iconTypeSelect) {
+        iconTypeSelect.addEventListener('change', function() {
+            const imageUrlGroup = document.getElementById('image-url-group');
+            const bootstrapIconGroup = document.getElementById('bootstrap-icon-group');
+            
+            if (this.value === 'image') {
+                imageUrlGroup.classList.remove('d-none');
+                bootstrapIconGroup.classList.add('d-none');
+            } else {
+                imageUrlGroup.classList.add('d-none');
+                bootstrapIconGroup.classList.remove('d-none');
+            }
+        });
+    }
+    
+    // Sync color picker input with hex text input
+    const iconColorPicker = document.getElementById('card-icon-color');
+    const iconColorHex = document.getElementById('card-icon-color-hex');
+    
+    if (iconColorPicker && iconColorHex) {
+        // Update hex input when color picker changes
+        iconColorPicker.addEventListener('input', function() {
+            iconColorHex.value = this.value;
+        });
+        
+        // Update color picker when hex input changes
+        iconColorHex.addEventListener('input', function() {
+            // Validate hex color format
+            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i.test(this.value);
+            if (isValidHex) {
+                iconColorPicker.value = this.value;
+            }
+        });
+        
+        // Ensure hex value starts with # when focus is lost
+        iconColorHex.addEventListener('blur', function() {
+            let val = this.value.trim();
+            if (val && !val.startsWith('#')) {
+                val = '#' + val;
+                this.value = val;
+            }
+            
+            // Validate hex color format
+            const isValidHex = /^#([0-9A-F]{3}){1,2}$/i.test(val);
+            if (!isValidHex && val) {
+                this.value = iconColorPicker.value;
+            } else if (isValidHex) {
+                iconColorPicker.value = val;
+            }
+        });
+    }
+    
+    // Validate card form
+    function validateCardForm() {
+        const title = document.getElementById('card-title').value.trim();
+        const description = document.getElementById('card-description').value.trim();
+        const url = document.getElementById('card-url').value.trim();
+        const iconType = document.getElementById('card-icon-type').value;
+        const imageUrl = document.getElementById('card-image-url').value.trim();
+        const bootstrapIcon = document.getElementById('card-bootstrap-icon').value.trim();
+        const sectionId = document.getElementById('card-section').value;
+        
+        if (!title) {
+            showNotification('Title is required', 'error');
+            return false;
+        }
+        
+        if (!description) {
+            showNotification('Description is required', 'error');
+            return false;
+        }
+        
+        if (!url) {
+            showNotification('URL is required', 'error');
+            return false;
+        }
+        
+        if (!sectionId) {
+            showNotification('Section is required', 'error');
+            return false;
+        }
+        
+        if (iconType === 'image' && !imageUrl) {
+            showNotification('Image URL is required for image icons', 'error');
+            return false;
+        }
+        
+        if (iconType === 'bootstrap' && !bootstrapIcon) {
+            showNotification('Bootstrap icon class is required for bootstrap icons', 'error');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Section form handling
+    const sectionForm = document.getElementById('section-form');
+    const saveSectionBtn = document.getElementById('save-section-btn');
+    const sectionModal = document.getElementById('sectionModal') ? 
+                         new bootstrap.Modal(document.getElementById('sectionModal')) : null;
+    
+    if (sectionForm && saveSectionBtn) {
+        sectionForm.addEventListener('submit', (e) => e.preventDefault());
+        
+        saveSectionBtn.addEventListener('click', async function() {
+            const formData = new FormData(sectionForm);
+            const sectionData = {
+                id: formData.get('id'),
+                title: formData.get('title'),
+                order: formData.get('order') || 1
+            };
+            
+            if (!sectionData.title.trim()) {
+                showNotification('Section title is required', 'error');
+                return;
+            }
+            
+            try {
+                let response;
+                
+                if (sectionData.id) {
+                    // Update existing section
+                    response = await fetch(`/api/sections/${sectionData.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sectionData)
+                    });
+                } else {
+                    // Create new section
+                    response = await fetch('/api/sections', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sectionData)
+                    });
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save section');
+                }
+                
+                // Hide modal before reloading data
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('sectionModal'));
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Trigger the dashboard to reload sections
+                if (window.loadSections) {
+                    window.loadSections();
+                } else {
+                    // Fallback - just reload the page
+                    window.location.reload();
+                }
+                
+                // Show success message
+                showNotification('Section saved successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error saving section:', error);
+                showNotification(error.message, 'error');
+            }
+        });
+    }
+    
+    // Helper function to show notifications
+    function showNotification(message, type = 'info') {
+        // Use a notification function if available from dashboard.js
+        if (window.showNotification) {
+            window.showNotification(type, message);
+            return;
+        }
+        
+        // Fallback to alert if no notification system is available
+        if (type === 'error') {
+            alert(`Error: ${message}`);
+        } else {
+            alert(message);
+        }
+    }
+    
+    // Export needed functions for dashboard.js to use
+    window.cardManager = {
+        validateCardForm,
+        showNotification
+    };
+    
+    // Initialize icon preview on page load
+    setTimeout(updateIconPreview, 100);
 });
