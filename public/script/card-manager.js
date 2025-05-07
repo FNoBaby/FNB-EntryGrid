@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug flag
+    const DEBUG = window.DEBUG || false;
+    
     // Cache DOM elements
     const sectionsContainer = document.getElementById('sections-container');
     const cardModal = document.getElementById('cardModal');
@@ -552,11 +555,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Fix issues with the deletion buttons by moving initialization to the main DOMContentLoaded handler
     // Log elements to console to debug
-    console.log('Delete buttons:', {
-        deleteCardBtn: deleteCardBtn,
-        deleteSectionBtn: deleteSectionBtn,
-        confirmDeleteBtn: confirmDeleteBtn
-    });
+    if (DEBUG) {
+        console.log('Delete buttons:', {
+            deleteCardBtn: deleteCardBtn,
+            deleteSectionBtn: deleteSectionBtn,
+            confirmDeleteBtn: confirmDeleteBtn
+        });
+    }
     
     // Direct event handlers - bypass the custom delete confirmation for now
     if (deleteCardBtn) {
@@ -710,12 +715,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        console.log('Icon preview elements found:', {
-            bootstrapIconInput,
-            iconPreview,
-            iconColorPicker,
-            iconColorHex
-        });
+        if (DEBUG) {
+            console.log('Icon preview elements found:', {
+                bootstrapIconInput,
+                iconPreview,
+                iconColorPicker,
+                iconColorHex
+            });
+        }
         
         // Function to update the icon preview
         function updateIconPreview() {
@@ -723,7 +730,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const iconClass = bootstrapIconInput.value.trim();
             const iconColor = iconColorPicker.value || '#0d6efd';
             
-            console.log('Updating icon preview:', { iconClass, iconColor });
+            if (DEBUG) console.log('Updating icon preview:', { iconClass, iconColor });
             
             // Update icon class
             iconPreview.className = 'bi';

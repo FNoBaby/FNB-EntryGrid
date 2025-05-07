@@ -114,7 +114,7 @@ console.log(`Starting server in ${ENVIRONMENT} mode${DEBUG ? ' with debugging' :
       
       // Additional suspicious request methods and paths
       if (req.method !== 'GET' && req.method !== 'POST') {
-        console.log(`Blocked suspicious ${req.method} request to: ${req.path}`);
+        if (DEBUG) console.log(`Blocked suspicious ${req.method} request to: ${req.path}`);
         return res.status(404).send('Not Found');
       }
       
@@ -122,14 +122,14 @@ console.log(`Starting server in ${ENVIRONMENT} mode${DEBUG ? ' with debugging' :
       const isBlockedPath = blockedPaths.some(path => req.path.includes(path));
       
       if (isBlockedPath) {
-        console.log(`Blocked suspicious request to: ${req.path}`);
+        if (DEBUG) console.log(`Blocked suspicious request to: ${req.path}`);
         return res.status(404).send('Not Found');
       }
       
       if (req.session.user) {
         return next();
       }
-      console.log(`Catch-all: redirecting unauthenticated request for ${req.path} to login`);
+      if (DEBUG) console.log(`Catch-all: redirecting unauthenticated request for ${req.path} to login`);
       res.redirect('/login');
     });
     

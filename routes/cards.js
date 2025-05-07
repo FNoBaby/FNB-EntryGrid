@@ -103,18 +103,19 @@ function createCardsRouter(pool) {
   router.delete('/:id', isAuthenticated, (req, res) => {
     withDatabaseCheck(pool, async (req, res, pool) => {
       try {
+        const DEBUG = process.env.DEBUG === 'true';
         // Log the delete request for debugging
-        console.log(`Deleting card with ID: ${req.params.id}`);
+        if (DEBUG) console.log(`Deleting card with ID: ${req.params.id}`);
         
         // Execute the query with proper error handling
         const [result] = await pool.query('DELETE FROM cards WHERE id = ?', [req.params.id]);
         
         if (result.affectedRows === 0) {
-          console.log(`No card found with ID: ${req.params.id}`);
+          if (DEBUG) console.log(`No card found with ID: ${req.params.id}`);
           return res.status(404).json({ error: 'Card not found' });
         }
         
-        console.log(`Successfully deleted card ID: ${req.params.id}`);
+        if (DEBUG) console.log(`Successfully deleted card ID: ${req.params.id}`);
         return res.status(200).json({ message: 'Card deleted successfully', id: req.params.id });
       } catch (err) {
         console.error('Error in DELETE /api/cards/:id:', err);

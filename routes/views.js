@@ -24,8 +24,11 @@ router.get('/', (req, res) => {
 
 // Dashboard route with authentication
 router.get('/dashboard', isAuthenticated, (req, res) => {
-  console.log(`Serving dashboard to authenticated user: ${req.session.user.username}`);
-  console.log('User session data:', req.session.user);
+  const DEBUG = process.env.DEBUG === 'true';
+  if (DEBUG) {
+    console.log(`Serving dashboard to authenticated user: ${req.session.user.username}`);
+    console.log('User session data:', req.session.user);
+  }
   
   const indexPath = path.join(process.cwd(), 'public', 'index.html');
   fs.readFile(indexPath, 'utf8', (err, data) => {
@@ -39,7 +42,7 @@ router.get('/dashboard', isAuthenticated, (req, res) => {
     // Add user info to the page
     if (req.session && req.session.user) {
       const displayName = req.session.user.name || req.session.user.username;
-      console.log('Using display name:', displayName);
+      if (DEBUG) console.log('Using display name:', displayName);
       
       // Update username in both places (page header and navbar)
       rendered = rendered.replace(
@@ -105,7 +108,8 @@ router.get('/dashboard', isAuthenticated, (req, res) => {
 
 // Admin page
 router.get('/admin', isAuthenticated, isAdmin, (req, res) => {
-  console.log(`Serving admin page to admin user: ${req.session.user.username}`);
+  const DEBUG = process.env.DEBUG === 'true';
+  if (DEBUG) console.log(`Serving admin page to admin user: ${req.session.user.username}`);
   res.sendFile(path.join(process.cwd(), 'public', 'admin.html'));
 });
 

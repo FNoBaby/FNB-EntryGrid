@@ -10,7 +10,7 @@ function isAuthenticated(req, res, next) {
     return next();
   }
   
-  console.log(`User not authenticated, redirecting to login from ${req.path}`);
+  if (DEBUG) console.log(`User not authenticated, redirecting to login from ${req.path}`);
   // Store the requested URL to redirect back after login
   req.session.returnTo = req.originalUrl;
   return res.redirect('/login');
@@ -40,7 +40,8 @@ function apiAuth(req, res, next) {
  * API admin middleware - for JSON responses
  */
 function apiAdmin(req, res, next) {
-  console.log('API Admin check - session user:', req.session.user);
+  const DEBUG = process.env.DEBUG === 'true';
+  if (DEBUG) console.log('API Admin check - session user:', req.session.user);
   
   if (req.session.user && req.session.user.role === 'admin') {
     return next();

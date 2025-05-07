@@ -19,15 +19,18 @@ function createSectionsRouter(pool) {
   // Get all sections
   router.get('/', withDatabaseCheck(async (req, res, pool) => {
     try {
-        console.log('Fetching all sections...');
+        const DEBUG = process.env.DEBUG === 'true';
+        if (DEBUG) console.log('Fetching all sections...');
         const [sections] = await pool.query('SELECT * FROM sections ORDER BY `order` ASC');
-        console.log(`Found ${sections.length} sections`);
+        if (DEBUG) console.log(`Found ${sections.length} sections`);
         
         // Log section IDs for debugging
-        if (sections.length > 0) {
-          console.log('Section IDs:', sections.map(s => s.id).join(', '));
-        } else {
-          console.log('No sections found in the database.');
+        if (DEBUG) {
+          if (sections.length > 0) {
+            console.log('Section IDs:', sections.map(s => s.id).join(', '));
+          } else {
+            console.log('No sections found in the database.');
+          }
         }
         
         res.json(sections);
@@ -92,12 +95,13 @@ function createSectionsRouter(pool) {
         await connection.beginTransaction();
         
         try {
+          const DEBUG = process.env.DEBUG === 'true';
           // Log the delete request for debugging
-          console.log(`Deleting section with ID: ${req.params.id}`);
+          if (DEBUG) console.log(`Deleting section with ID: ${req.params.id}`);
           
           // First delete all cards in the section
           const [cardResult] = await connection.query('DELETE FROM cards WHERE sectionId = ?', [req.params.id]);
-          console.log(`Deleted ${cardResult.affectedRows} cards from section ${req.params.id}`);
+          if (DEBUG) console.log(`Deleted ${cardResult.affectedRows} cards from section ${req.params.id}`);
           
           // Then delete the section
           const [sectionResult] = await connection.query('DELETE FROM sections WHERE id = ?', [req.params.id]);
@@ -106,7 +110,7 @@ function createSectionsRouter(pool) {
             // Rollback if section not found
             await connection.rollback();
             connection.release();
-            console.log(`No section found with ID: ${req.params.id}`);
+            if (DEBUG) console.log(`No section found with ID: ${req.params.id}`);
             return res.status(404).json({ error: 'Section not found' });
           }
           
@@ -114,7 +118,7 @@ function createSectionsRouter(pool) {
           await connection.commit();
           connection.release();
           
-          console.log(`Successfully deleted section ID: ${req.params.id}`);
+          if (DEBUG) console.log(`Successfully deleted section ID: ${req.params.id}`);
           return res.status(200).json({ 
             message: 'Section deleted successfully', 
             id: req.params.id,

@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Current element being deleted
     let currentDeleteTarget = { type: null, id: null, name: null };
     
+    // Debug flag
+    const DEBUG = window.DEBUG || false;
+    
     // Initialize the page
     init();
     
@@ -65,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load all sections and their cards
     async function loadSections() {
         try {
-            console.log('Loading sections from API...');
+            if (DEBUG) console.log('Loading sections from API...');
             if (!sectionsContainer) {
                 console.error('Sections container not found in DOM.');
                 return;
@@ -91,13 +94,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const sections = await response.json();
-            console.log(`Loaded ${sections.length} sections from API`);
+            if (DEBUG) console.log(`Loaded ${sections.length} sections from API`);
             
             // Clear container
             sectionsContainer.innerHTML = '';
             
             if (sections.length === 0) {
-                console.warn('No sections returned from API');
+                if (DEBUG) console.warn('No sections returned from API');
                 sectionsContainer.innerHTML = `
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle-fill me-2"></i>
@@ -112,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Render each section
             for (const section of sections) {
-                console.log(`Rendering section: ${section.id} - ${section.title}`);
+                if (DEBUG) console.log(`Rendering section: ${section.id} - ${section.title}`);
                 await renderSection(section);
             }
             

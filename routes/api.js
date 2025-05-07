@@ -13,19 +13,20 @@ const isAdmin = (req, res, next) => {
 // Get all users (admin only)
 router.get('/users', isAdmin, async (req, res) => {
     try {
-        console.log('API: Fetching all users...');
+        const DEBUG = process.env.DEBUG === 'true';
+        if (DEBUG) console.log('API: Fetching all users...');
         
         // Log connection status
         try {
             await sequelize.authenticate();
-            console.log('Connection has been established successfully.');
+            if (DEBUG) console.log('Connection has been established successfully.');
         } catch (error) {
             console.error('Unable to connect to the database:', error);
         }
         
         // Try a direct database query first to diagnose issues
         const directResults = await User.findAllUsers();
-        console.log('Direct SQL query results:', directResults);
+        if (DEBUG) console.log('Direct SQL query results:', directResults);
         
         // Now try the ORM method
         const users = await User.findAll({
@@ -33,15 +34,17 @@ router.get('/users', isAdmin, async (req, res) => {
             order: [['username', 'ASC']]
         });
         
-        console.log(`API: Found ${users.length} users via ORM`);
-        
-        // Log user objects for debugging (without password)
-        console.log('Users via ORM:', users.map(user => ({
-            id: user.id,
-            username: user.username,
-            role: user.role,
-            isActive: user.isActive
-        })));
+        if (DEBUG) {
+            console.log(`API: Found ${users.length} users via ORM`);
+            
+            // Log user objects for debugging (without password)
+            console.log('Users via ORM:', users.map(user => ({
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                isActive: user.isActive
+            })));
+        }
         
         return res.json({ success: true, users: directResults.length > 0 ? directResults : users });
     } catch (error) {
@@ -76,6 +79,7 @@ router.get('/users/:id', isAdmin, async (req, res) => {
 router.post('/users', isAdmin, async (req, res) => {
     try {
         const { username, password, name, email, role } = req.body;
+        const DEBUG = process.env.DEBUG === 'true';
         
         // Validation
         if (!username || !password || !name) {
@@ -95,7 +99,7 @@ router.post('/users', isAdmin, async (req, res) => {
         }
         
         // Create user - password will be hashed by the beforeCreate hook
-        console.log(`Creating user ${username} with role ${role || 'user'}`);
+        if (DEBUG) console.log(`Creating user ${username} with role ${role || 'user'}`);
         const user = await User.create({
             username: username.toLowerCase(),
             password,
@@ -105,9 +109,9 @@ router.post('/users', isAdmin, async (req, res) => {
             isActive: true
         });
         
-        console.log(`User created with ID: ${user.id}`);
-        // Verify password is hashed (don't log the actual hash in production)
-        if (process.env.DEBUG === 'true') {
+        if (DEBUG) {
+            console.log(`User created with ID: ${user.id}`);
+            // Verify password is hashed (don't log the actual hash in production)
             console.log('Password is hashed:', !password.includes(user.password) && user.password.length > 20);
         }
         

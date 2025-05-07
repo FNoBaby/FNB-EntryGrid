@@ -55,24 +55,28 @@ async function initializeUserDatabase() {
     await sequelize.sync({ alter: false });  // Changed to false to avoid altering existing tables
     console.log('Database tables synced successfully');
     
+    const DEBUG = process.env.DEBUG === 'true';
+    
     // Log table names to verify
-    const [tables] = await sequelize.query('SHOW TABLES');
-    console.log('Available tables:', tables.map(t => t[Object.keys(t)[0]]));
-    
-    // Check for the exact table name that might be used
-    const tableName = User.tableName || 'Users';
-    console.log('User model tableName:', tableName);
-    
-    // Instead of using tableNameQuery, use a simpler approach to check table existence
-    const [checkTable] = await sequelize.query(
-      `SELECT COUNT(*) as count FROM information_schema.tables 
-       WHERE table_schema = ? AND table_name = ?`,
-      {
-        replacements: [sequelize.config.database, tableName]
-      }
-    );
-    
-    console.log(`Table ${tableName} existence check:`, checkTable[0].count > 0 ? 'Exists' : 'Does not exist');
+    if (DEBUG) {
+      const [tables] = await sequelize.query('SHOW TABLES');
+      console.log('Available tables:', tables.map(t => t[Object.keys(t)[0]]));
+      
+      // Check for the exact table name that might be used
+      const tableName = User.tableName || 'Users';
+      console.log('User model tableName:', tableName);
+      
+      // Instead of using tableNameQuery, use a simpler approach to check table existence
+      const [checkTable] = await sequelize.query(
+        `SELECT COUNT(*) as count FROM information_schema.tables 
+         WHERE table_schema = ? AND table_name = ?`,
+        {
+          replacements: [sequelize.config.database, tableName]
+        }
+      );
+      
+      console.log(`Table ${tableName} existence check:`, checkTable[0].count > 0 ? 'Exists' : 'Does not exist');
+    }
     
     // Check if admin user exists, create if not
     const adminCount = await User.count();
@@ -104,6 +108,7 @@ async function initializeUserDatabase() {
  * Connects to card database and sets up tables (MySQL)
  */
 async function connectToCardDatabase() {
+  const DEBUG = process.env.DEBUG === 'true';
   const dbConfig = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || '3306'),
@@ -116,12 +121,14 @@ async function connectToCardDatabase() {
   };
   
   try {
-    console.log('Attempting to connect to MySQL for card database with settings:', {
-      host: dbConfig.host,
-      port: dbConfig.port,
-      user: dbConfig.user,
-      database: dbConfig.database
-    });
+    if (DEBUG) {
+      console.log('Attempting to connect to MySQL for card database with settings:', {
+        host: dbConfig.host,
+        port: dbConfig.port,
+        user: dbConfig.user,
+        database: dbConfig.database
+      });
+    }
     
     // Test the connection before creating the pool
     const testConnection = await mysql.createConnection({
