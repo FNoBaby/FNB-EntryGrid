@@ -400,6 +400,11 @@ body.dark-mode .footer {
 /* Modern card styling */
 .card-body {
   padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* Add this to allow button positioning */
+  padding-bottom: 70px; /* Add space for the action buttons at bottom */
 }
 
 .btn {
@@ -621,6 +626,10 @@ h2 {
 /* Card edit button hover effects */
 .card {
   position: relative;
+  min-height: 360px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .edit-card-btn {
@@ -1506,4 +1515,303 @@ body.dark-mode .table-hover tbody tr:hover {
   height: 38px; /* Match the height with dropdown trigger */
   display: flex;
   align-items: center;
+}
+
+/* Responsive dynamic card grid layout */
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0 -0.75rem;
+}
+
+/* Replace the fixed column width with a more flexible approach */
+.col-md-5, .col-lg-4, .col-md-4 {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 0.75rem;
+  margin-bottom: 1.5rem;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Responsive grid - cards per row based on screen size */
+@media (min-width: 576px) {
+  .col-md-5, .col-lg-4, .col-md-4 {
+    width: calc(100% - 1.5rem);
+    max-width: 450px;
+  }
+}
+
+@media (min-width: 768px) {
+  .col-md-5, .col-lg-4, .col-md-4 {
+    width: calc(50% - 1.5rem);
+  }
+}
+
+@media (min-width: 992px) {
+  .col-md-5, .col-lg-4, .col-md-4 {
+    width: calc(33.333% - 1.5rem);
+  }
+}
+
+@media (min-width: 1200px) {
+  .col-md-5, .col-lg-4, .col-md-4 {
+    width: calc(25% - 1.5rem);
+  }
+}
+
+@media (min-width: 1400px) {
+  .col-md-5, .col-lg-4, .col-md-4 {
+    width: calc(20% - 1.5rem);
+  }
+}
+
+/* Card-wrapper styling for consistent behavior */
+.card-wrapper {
+  width: 100%;
+  padding: 0 0.75rem;
+  margin-bottom: 1.5rem;
+  transition: opacity 0.4s ease, transform 0.4s ease, height 0.4s ease;
+  transform-origin: center top;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Apply the same responsive rules to card-wrapper */
+@media (min-width: 576px) {
+  .card-wrapper {
+    width: calc(100% - 1.5rem);
+    max-width: 450px;
+  }
+}
+
+@media (min-width: 768px) {
+  .card-wrapper {
+    width: calc(50% - 1.5rem);
+  }
+}
+
+@media (min-width: 992px) {
+  .card-wrapper {
+    width: calc(33.333% - 1.5rem);
+  }
+}
+
+@media (min-width: 1200px) {
+  .card-wrapper {
+    width: calc(25% - 1.5rem);
+  }
+}
+
+@media (min-width: 1400px) {
+  .card-wrapper {
+    width: calc(20% - 1.5rem);
+  }
+}
+
+/* Animation delays for card-wrapper */
+.card-wrapper:nth-child(1) { transition-delay: 0ms; }
+.card-wrapper:nth-child(2) { transition-delay: 30ms; }
+.card-wrapper:nth-child(3) { transition-delay: 60ms; }
+.card-wrapper:nth-child(4) { transition-delay: 90ms; }
+.card-wrapper:nth-child(5) { transition-delay: 120ms; }
+.card-wrapper:nth-child(6) { transition-delay: 150ms; }
+
+/* Apply search hiding to card-wrapper */
+.card-wrapper.search-hidden {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+  pointer-events: none;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  overflow: hidden;
+}
+
+/* Maintain the search transition behavior */
+.search-hidden {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+  pointer-events: none;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  overflow: hidden;
+}
+
+/* Improved Card Actions - similar to section controls */
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+  /* Remove top: 50% and right: 20px that were causing misalignment */
+}
+
+.card:hover .card-actions {
+  opacity: 1;
+}
+
+/* Style for edit and delete buttons on cards */
+.card-actions .btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0;
+}
+
+/* Redesigned Card Actions - positioned at the card bottom */
+.card-actions {
+  position: absolute;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  transform: scale(0.9);
+  z-index: 10;
+}
+
+.card:hover .card-actions {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Move the "open" button to allow space for action buttons */
+.card-body .btn-primary {
+  padding-right: 80px; /* Make space for the action buttons */
+}
+
+/* Style for edit and delete buttons on cards */
+.card-actions .btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.edit-card-btn {
+  color: #0d6efd !important;
+}
+
+.delete-card-btn {
+  color: #dc3545 !important;
+}
+
+/* Transition when hovering buttons */
+.card-actions .btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode styling for card action buttons */
+[data-bs-theme="dark"] .card-actions .btn,
+body.dark-mode .card-actions .btn {
+  background-color: rgba(33, 37, 41, 0.9);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-bs-theme="dark"] .edit-card-btn,
+body.dark-mode .edit-card-btn {
+  color: #6ea8fe !important;
+}
+
+[data-bs-theme="dark"] .delete-card-btn,
+body.dark-mode .delete-card-btn {
+  color: #ff6b6b !important;
+}
+
+/* Clean up the duplicate styling for edit-card-btn since we now have card-actions */
+.edit-card-btn {
+  position: relative;
+  top: auto;
+  right: auto;
+  opacity: 1;
+  transform: none;
+  z-index: auto;
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+/* Responsive dynamic card grid layout - fix compressed cards */
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0 -0.75rem;
+}
+
+/* Fix for compressed cards - ensure proper sizing and spacing */
+.col-md-5, .col-lg-4, .col-md-4, .card-wrapper {
+  width: 340px;  /* Set a fixed width that works well */
+  max-width: 100%;
+  padding: 0 0.75rem;
+  margin-bottom: 1.5rem;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Add minimum height to cards to prevent squishing */
+.card {
+  min-height: 360px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure card body takes available space */
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* Add this to allow button positioning */
+  padding-bottom: 70px; /* Add space for the action buttons at bottom */
+}
+
+/* Push the button to the bottom of the card */
+.card-body .btn {
+  margin-top: auto;
+}
+
+/* Responsive adjustments - simplified to work better */
+@media (max-width: 767.98px) {
+  .col-md-5, .col-lg-4, .col-md-4, .card-wrapper {
+    width: 100%;
+  }
+  
+  .card {
+    min-height: 320px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .col-md-5, .col-lg-4, .col-md-4, .card-wrapper {
+    width: 320px;
+  }
+}
+
+@media (min-width: 992px) {
+  .cards-container {
+    gap: 2rem;
+  }
 }

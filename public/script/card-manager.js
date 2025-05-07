@@ -298,57 +298,147 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createCardElement(card) {
+        // Use card-wrapper for more consistent sizing
         const colDiv = document.createElement('div');
-        colDiv.className = 'col-md-5 col-lg-4 mb-4';
+        colDiv.className = 'card-wrapper';
         colDiv.dataset.cardId = card.id;
         
         let iconHtml;
         if (card.iconType === 'image') {
             iconHtml = `<img src="${card.imageUrl}" class="card-img-top" alt="${card.title} Logo">`;
         } else {
-            // Use the card's iconColor property or default to blue
             const iconColor = card.iconColor || '#0d6efd';
             iconHtml = `
-                <div class="card-img-container">
-                    <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor}"></i>
+                <div class="card-img-top d-flex align-items-center justify-content-center pt-4">
+                    <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor};"></i>
                 </div>
             `;
         }
         
         colDiv.innerHTML = `
-            <div class="card clickable-card" data-url="${card.url}">
+            <div class="card">
                 ${iconHtml}
-                <button class="edit-card-btn btn btn-sm">
-                    <i class="bi bi-pencil"></i>
-                </button>
                 <div class="card-body text-center">
                     <h5 class="card-title">${card.title}</h5>
                     <p class="card-text">${card.description}</p>
-                    <a href="${card.url}" class="btn btn-primary w-100 card-btn" target="_blank" rel="noopener noreferrer">
-                        <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} me-2"></i>Go to ${card.title}
-                    </a>
+                    <div class="position-relative mt-auto">
+                        <a href="${card.url}" class="btn btn-primary w-100" target="_blank" rel="noopener noreferrer">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} me-2"></i>Go to ${card.title}
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn edit-card-btn" title="Edit card">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn delete-card-btn" title="Delete card">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         `;
         
-        // Add event listener to make the whole card clickable
-        const clickableCard = colDiv.querySelector('.clickable-card');
-        if (clickableCard) {
-            clickableCard.addEventListener('click', function(e) {
-                // Check if click was on a button or link
-                if (!e.target.closest('.edit-card-btn') && !e.target.closest('.card-btn')) {
-                    window.open(this.dataset.url, '_blank');
-                }
+        // Add event listeners for the action buttons
+        const editBtn = colDiv.querySelector('.edit-card-btn');
+        if (editBtn) {
+            editBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editCard(card);
             });
         }
         
-        // Add event listener to edit button
-        colDiv.querySelector('.edit-card-btn').addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent card click
-            editCard(card);
-        });
+        const deleteBtn = colDiv.querySelector('.delete-card-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Use the existing delete confirmation function
+                showDeleteConfirmation(
+                    'card',
+                    card.id,
+                    `Are you sure you want to delete "${card.title}"?`,
+                    null,
+                    function() {
+                        deleteCardById(card.id);
+                    }
+                );
+            });
+        }
         
         return colDiv;
+    }
+    
+    // New function to handle card deletion confirmation
+    function confirmDeleteCard(card) {
+        showDeleteConfirmation(
+            'card',
+            card.id,
+            `Are you sure you want to delete "${card.title}"?`,
+            null,
+            function() {
+                fetch(`/api/cards/${card.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to delete card: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Remove the card from DOM
+                    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
+                    if (cardElement) {
+                        cardElement.remove();
+                    }
+                    
+                    // Show success notification
+                    showNotification('Card deleted successfully', 'success');
+                })
+                .catch(error => {
+                    console.error('Error deleting card:', error);
+                    showErrorModal('Delete Failed', 'There was a problem deleting the card. Please try again.');
+                });
+            }
+        );
+    }
+    
+    // Add a dedicated function to delete a card by ID
+    function deleteCardById(cardId) {
+        fetch(`/api/cards/${cardId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to delete card: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Remove the card from DOM
+            const cardElement = document.querySelector(`[data-card-id="${cardId}"]`);
+            if (cardElement) {
+                cardElement.remove();
+            }
+            
+            // Show success notification
+            showNotification('Card deleted successfully', 'success');
+        })
+        .catch(error => {
+            console.error('Error deleting card:', error);
+            showErrorModal('Delete Failed', 'There was a problem deleting the card. Please try again.');
+        });
     }
     
     function editCard(card) {

@@ -1,5 +1,38 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('quick-search');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        // Get all card elements using the new card-wrapper class
+        const cards = document.querySelectorAll('.card-wrapper');
+        const sections = document.querySelectorAll('[data-section-id]');
+        let anyVisible = false;
+        
+        // Check if search is active (has content)
+        const isSearchActive = searchTerm.length > 0;
+        
+        // Loop through each card and check if it matches the search
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
+            const description = card.querySelector('.card-text')?.textContent.toLowerCase() || '';
+            const isMatch = title.includes(searchTerm) || description.includes(searchTerm);
+            
+            // Toggle visibility
+            if (isMatch || !isSearchActive) {
+                card.classList.remove('search-hidden');
+                anyVisible = true;
+            } else {
+                card.classList.add('search-hidden');
+            }
+        });
+        
+        // ...existing code for handling sections and no results message...
+    });
+    
+    // ...existing code for ESC key and other features...
+    
     const cards = document.querySelectorAll('.card');
     const cardContainers = document.querySelectorAll('.col-md-5');
     const cardRows = document.querySelectorAll('.row');
