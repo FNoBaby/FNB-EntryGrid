@@ -305,17 +305,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let iconHtml;
         if (card.iconType === 'image') {
-            iconHtml = `<img src="${card.imageUrl}" class="card-img-top" alt="${card.title} Logo">`;
+            // Improved image handling with proper containment
+            iconHtml = `
+                <div class="card-img-container">
+                    <img src="${card.imageUrl}" class="card-img-top" alt="${card.title} Logo">
+                </div>
+            `;
         } else {
             const iconColor = card.iconColor || '#0d6efd';
             iconHtml = `
-                <div class="card-img-top d-flex align-items-center justify-content-center pt-4">
+                <div class="card-img-container">
                     <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor};"></i>
                 </div>
             `;
         }
         
-        colDiv.innerHTML = `
+        // Grid view HTML (default)
+        const gridViewHtml = `
             <div class="card">
                 ${iconHtml}
                 <div class="card-body text-center">
@@ -323,18 +329,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="card-text">${card.description}</p>
                     <div class="position-relative mt-auto">
                         <a href="${card.url}" class="btn btn-primary w-100" target="_blank" rel="noopener noreferrer">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} me-2"></i>Go to ${card.title}
-                                </div>
-                                <div class="card-actions">
-                                    <button class="btn edit-card-btn" title="Edit card">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn delete-card-btn" title="Delete card">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                            <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} me-2"></i>Go to ${card.title}
+                            <div class="card-actions">
+                                <button class="btn edit-card-btn" title="Edit card">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn delete-card-btn" title="Delete card">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </a>
                     </div>
@@ -342,8 +344,48 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
+        // Updated list view HTML with consistent handling for both icon and image
+        const listViewHtml = `
+            <div class="card">
+                ${iconHtml}
+                <div class="card-body">
+                    <div class="card-content">
+                        <h5 class="card-title">${card.title}</h5>
+                        <p class="card-text">${card.description}</p>
+                    </div>
+                    <div class="card-actions-container">
+                        <a href="${card.url}" class="btn btn-sm btn-primary list-primary-action" target="_blank" rel="noopener noreferrer">
+                            <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'}"></i>
+                            <span>Open</span>
+                        </a>
+                        <button class="list-menu-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end list-dropdown-menu">
+                            <li>
+                                <a class="dropdown-item edit-card-link" href="#">
+                                    <i class="bi bi-pencil"></i>Edit
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item delete-card-link text-danger" href="#">
+                                    <i class="bi bi-trash"></i>Delete
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // We'll switch between these views based on the current view mode
+        // Set the initial content based on current view mode (default to grid)
+        const currentView = localStorage.getItem('viewMode') || 'grid';
+        colDiv.innerHTML = currentView === 'list' ? listViewHtml : gridViewHtml;
+        
         // Add event listeners for the action buttons
-        const editBtn = colDiv.querySelector('.edit-card-btn');
+        const editBtn = colDiv.querySelector('.edit-card-btn, .edit-card-link');
         if (editBtn) {
             editBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -352,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        const deleteBtn = colDiv.querySelector('.delete-card-btn');
+        const deleteBtn = colDiv.querySelector('.delete-card-btn, .delete-card-link');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -367,6 +409,59 @@ document.addEventListener('DOMContentLoaded', function() {
                         deleteCardById(card.id);
                     }
                 );
+            });
+        }
+        
+        // Add open link functionality to list view
+        const openLink = colDiv.querySelector('.open-link');
+        if (openLink) {
+            openLink.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Let the default link behavior work
+            });
+        }
+        
+        // Ensure proper icon sizing in list view
+        if (currentView === 'list') {
+            const cardElement = colDiv.querySelector('.card');
+            
+            // Add special handling for images in list view
+            const imgElement = cardElement.querySelector('img.card-img-top');
+            if (imgElement) {
+                // Ensure images are properly sized in list view
+                imgElement.style.transition = 'none';
+                imgElement.style.height = '100%';
+                imgElement.style.width = '100%';
+                imgElement.style.maxHeight = '100%';
+                imgElement.style.maxWidth = '100%';
+                imgElement.style.objectFit = 'contain';
+                imgElement.style.padding = '6px';
+            }
+            
+            // Make sure Bootstrap icons are properly sized
+            const bootstrapIcons = cardElement.querySelectorAll('.bi');
+            bootstrapIcons.forEach(icon => {
+                if (!icon.closest('.card-actions-container') && !icon.closest('.list-dropdown-menu')) {
+                    // Don't change size for action/dropdown icons
+                    if (icon.closest('.card-img-container') || icon.closest('.text-center.py-4')) {
+                        icon.style.fontSize = '1.5rem';
+                    }
+                }
+            });
+            
+            // Setup clickable card with proper event handling
+            const actionButtons = cardElement.querySelectorAll('.list-primary-action, .list-menu-toggle, .dropdown-menu');
+            
+            cardElement.addEventListener('click', (e) => {
+                // Don't trigger card click if clicking on action buttons or their children
+                for (const button of actionButtons) {
+                    if (button === e.target || button.contains(e.target)) {
+                        return;
+                    }
+                }
+                
+                // Open the URL in a new tab
+                window.open(card.url, '_blank', 'noopener,noreferrer');
             });
         }
         
