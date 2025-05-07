@@ -137,9 +137,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Sort sections by order
                     sections.sort((a, b) => a.order - b.order);
                     
+                    // Get current view mode
+                    const currentView = localStorage.getItem('viewMode') || 'grid';
+                    
+                    // Create a wrapper for sections
+                    const sectionsRow = document.createElement('div');
+                    sectionsRow.className = 'sections-row';
+                    sectionsContainer.appendChild(sectionsRow);
+                    
+                    // Add a class to the sections container for view-specific styling
+                    sectionsContainer.className = currentView === 'list' ? 'list-view' : 'grid-view';
+                    
                     // Create a section for each element in sections array
-                    sections.forEach(section => {
-                        createSectionElement(section);
+                    sections.forEach((section, index) => {
+                        const sectionEl = createSectionElement(section);
+                        sectionsRow.appendChild(sectionEl);
                     });
                 }
                 
@@ -150,6 +162,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error loading sections:', error);
                 showNotification('Failed to load sections', 'danger');
             });
+    }
+    
+    // Helper function to create a row for sections
+    function createSectionsRow() {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'sections-row';
+        return rowEl;
     }
     
     function showNoSectionsMessage() {
@@ -178,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function createSectionElement(section) {
         const sectionEl = document.createElement('div');
-        sectionEl.className = 'mb-5';
+        sectionEl.className = 'section-container';
         sectionEl.dataset.sectionId = section.id;
         
         const headerEl = document.createElement('div');
@@ -219,13 +238,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create cards container
         const cardsContainer = document.createElement('div');
-        cardsContainer.className = 'row cards-container justify-content-center';
+        cardsContainer.className = 'cards-container';
         cardsContainer.dataset.sectionId = section.id;
         
         sectionEl.appendChild(headerEl);
         sectionEl.appendChild(cardsContainer);
         
-        sectionsContainer.appendChild(sectionEl);
+        return sectionEl;
     }
     
     function loadCards() {
@@ -305,17 +324,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let iconHtml;
         if (card.iconType === 'image') {
-            iconHtml = `<img src="${card.imageUrl}" class="card-img-top" alt="${card.title} Logo">`;
+            // Create a consistent container for images
+            iconHtml = `
+                <div class="card-img-container">
+                    <img src="${card.imageUrl}" class="card-img-top" alt="${card.title} Logo">
+                </div>
+            `;
         } else {
             const iconColor = card.iconColor || '#0d6efd';
             iconHtml = `
-                <div class="card-img-top d-flex align-items-center justify-content-center pt-4">
+                <div class="card-img-container">
                     <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor};"></i>
                 </div>
             `;
         }
         
-        colDiv.innerHTML = `
+        // Grid view HTML (default)
+        const gridViewHtml = `
             <div class="card">
                 ${iconHtml}
                 <div class="card-body text-center">
@@ -323,18 +348,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="card-text">${card.description}</p>
                     <div class="position-relative mt-auto">
                         <a href="${card.url}" class="btn btn-primary w-100" target="_blank" rel="noopener noreferrer">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} me-2"></i>Go to ${card.title}
-                                </div>
-                                <div class="card-actions">
-                                    <button class="btn edit-card-btn" title="Edit card">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn delete-card-btn" title="Delete card">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                            <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} me-2"></i>Go to ${card.title}
+                            <div class="card-actions">
+                                <button class="btn edit-card-btn" title="Edit card">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn delete-card-btn" title="Delete card">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </a>
                     </div>
@@ -342,8 +363,48 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
+        // Updated list view HTML with consistent icon/image container structure
+        const listViewHtml = `
+            <div class="card">
+                ${iconHtml}
+                <div class="card-body">
+                    <div class="card-content">
+                        <h5 class="card-title">${card.title}</h5>
+                        <p class="card-text">${card.description}</p>
+                    </div>
+                    <div class="card-actions-container">
+                        <a href="${card.url}" class="btn btn-sm btn-primary list-primary-action" target="_blank" rel="noopener noreferrer">
+                            <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'}"></i>
+                            <span>Open</span>
+                        </a>
+                        <button class="list-menu-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end list-dropdown-menu">
+                            <li>
+                                <a class="dropdown-item edit-card-link" href="#">
+                                    <i class="bi bi-pencil"></i>Edit
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item delete-card-link text-danger" href="#">
+                                    <i class="bi bi-trash"></i>Delete
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // We'll switch between these views based on the current view mode
+        // Set the initial content based on current view mode (default to grid)
+        const currentView = localStorage.getItem('viewMode') || 'grid';
+        colDiv.innerHTML = currentView === 'list' ? listViewHtml : gridViewHtml;
+        
         // Add event listeners for the action buttons
-        const editBtn = colDiv.querySelector('.edit-card-btn');
+        const editBtn = colDiv.querySelector('.edit-card-btn, .edit-card-link');
         if (editBtn) {
             editBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -352,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        const deleteBtn = colDiv.querySelector('.delete-card-btn');
+        const deleteBtn = colDiv.querySelector('.delete-card-btn, .delete-card-link');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -368,6 +429,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 );
             });
+        }
+        
+        // Apply specific styling to ensure images display correctly in list view
+        if (currentView === 'list') {
+            const imgElement = colDiv.querySelector('img.card-img-top');
+            if (imgElement) {
+                // Reset any problematic styles
+                imgElement.style.position = 'static';
+                imgElement.style.width = '100%';
+                imgElement.style.height = '100%';
+                imgElement.style.objectFit = 'contain';
+                imgElement.style.padding = '6px';
+                imgElement.style.margin = '0';
+                imgElement.style.transform = 'none';
+                imgElement.style.transition = 'none';
+                
+                // Make sure the parent container has proper styling
+                const imgContainer = imgElement.closest('.card-img-container');
+                if (imgContainer) {
+                    imgContainer.style.display = 'flex';
+                    imgContainer.style.alignItems = 'center';
+                    imgContainer.style.justifyContent = 'center';
+                    imgContainer.style.overflow = 'hidden';
+                }
+            }
+            
+            // Make sure Bootstrap icons are properly sized in list view
+            const bootstrapIconsInContainer = colDiv.querySelectorAll('.card-img-container .bi');
+            bootstrapIconsInContainer.forEach(icon => {
+                if (icon.closest('.card-img-container')) {
+                    icon.style.fontSize = '1.5rem';
+                    icon.style.transform = 'none';
+                    icon.style.transition = 'none';
+                }
+            });
+            
+            // Setup clickable card behavior
+            // ...existing clickable card code...
         }
         
         return colDiv;
@@ -1178,3 +1277,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize icon preview on page load
     setTimeout(updateIconPreview, 100);
 });
+
+// Add this new function to handle view mode switching
+function updateViewMode(viewMode) {
+    // Update localStorage
+    localStorage.setItem('viewMode', viewMode);
+    
+    // Handle section layout based on view mode
+    const sectionsContainer = document.getElementById('sections-container');
+    if (sectionsContainer) {
+        // Update the view class
+        sectionsContainer.className = viewMode === 'list' ? 'list-view' : 'grid-view';
+        
+        // For dramatic layout changes, it's sometimes simpler to reload
+        // Alternatively, we could manipulate the DOM here to reformat
+        loadSections();
+    }
+}
+
+// Export this function so it can be called from the view toggle buttons
+window.updateViewMode = updateViewMode;
