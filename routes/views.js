@@ -25,6 +25,7 @@ router.get('/', (req, res) => {
 // Dashboard route with authentication
 router.get('/dashboard', isAuthenticated, (req, res) => {
   console.log(`Serving dashboard to authenticated user: ${req.session.user.username}`);
+  console.log('User session data:', req.session.user);
   
   const indexPath = path.join(process.cwd(), 'public', 'index.html');
   fs.readFile(indexPath, 'utf8', (err, data) => {
@@ -37,16 +38,44 @@ router.get('/dashboard', isAuthenticated, (req, res) => {
     
     // Add user info to the page
     if (req.session && req.session.user) {
+      const displayName = req.session.user.name || req.session.user.username;
+      console.log('Using display name:', displayName);
+      
+      // Update username in both places (page header and navbar)
       rendered = rendered.replace(
-        /<span id="user-name">User<\/span>/,
-        `<span id="user-name">${req.session.user.name || req.session.user.username}</span>`
+        /<span id="nav-user-name">User<\/span>/g,
+        `<span id="nav-user-name">${displayName}</span>`
       );
       
-      // If user is admin, make admin link visible
+      rendered = rendered.replace(
+        /<span id="user-name">User<\/span>/g,
+        `<span id="user-name">${displayName}</span>`
+      );
+      
+      // Set the avatar initial
+      const initial = displayName.charAt(0).toUpperCase();
+      rendered = rendered.replace(
+        /<span id="avatar-initial">U<\/span>/g,
+        `<span id="avatar-initial">${initial}</span>`
+      );
+      
+      // If user is admin, make admin nav visible
       if (req.session.user.role === 'admin') {
+        rendered = rendered.replace(
+          /<li class="nav-item" id="admin-nav-item">/,
+          '<li class="nav-item" id="admin-nav-item">'
+        );
+        
+        // Legacy admin link container - keep for backward compatibility
         rendered = rendered.replace(
           /<span id="admin-link-container" class="d-none">/,
           '<span id="admin-link-container">'
+        );
+      } else {
+        // Hide admin nav for non-admin users
+        rendered = rendered.replace(
+          /<li class="nav-item" id="admin-nav-item">/,
+          '<li class="nav-item d-none" id="admin-nav-item">'
         );
       }
     }
@@ -82,7 +111,19 @@ router.get('/admin', isAuthenticated, isAdmin, (req, res) => {
 
 // User info API
 router.get('/api/user', isAuthenticated, (req, res) => {
-  res.json({ user: req.session.user });
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  res.json({ 
+    user: {
+      id: req.session.user.id,
+      username: req.session.user.username,
+      name: req.session.user.name,
+      role: req.session.user.role,
+      email: req.session.user.email
+    } 
+  });
 });
 
 module.exports = router;

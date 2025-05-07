@@ -1,34 +1,46 @@
-require('dotenv').config();
+/**
+ * Application configuration settings
+ */
+const dotenv = require('dotenv');
+dotenv.config();
 
-const ENVIRONMENT = process.env.ENVIRONMENT || 'DEV';
-const isProd = ENVIRONMENT === 'PROD';
-
+// Environment variables with defaults
 const config = {
-  // General settings
-  environment: ENVIRONMENT,
-  isProd: isProd,
-  port: process.env.PORT || (isProd ? 80 : 3000),
+  // Server settings
+  port: process.env.PORT || 3002,
+  environment: process.env.ENVIRONMENT || 'DEV',
+  nodeEnv: process.env.NODE_ENV || 'development',
+  debug: process.env.DEBUG === 'true',
+  
+  // Database settings
+  database: {
+    dialect: process.env.DB_DIALECT || 'mysql',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306'),
+    name: process.env.DB_NAME || 'dashboard_db',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    useMysql: process.env.USE_MYSQL !== 'false',
+    // Retry settings for database connection
+    connectionRetries: 3,
+    retryDelay: 5000, // 5 seconds
+  },
+  
+  // Session settings
+  session: {
+    secret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
+    expirationDays: process.env.ENVIRONMENT === 'PROD' ? 7 : 1, // 7 days in prod, 1 day in dev
+    cookieName: 'fnobaby.sid'
+  },
   
   // Security settings
   security: {
-    enableCSP: isProd,
-    sessionSecret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
-    sessionMaxAge: isProd ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000, // 7 days in prod, 24 hours in dev
-    secureCookies: isProd
-  },
-  
-  // Database settings (for future use)
-  database: {
-    useInMemory: !isProd,
-    connectionString: process.env.DB_CONNECTION_STRING
-  },
-  
-  // Logging settings
-  logging: {
-    level: isProd ? 'info' : 'debug',
-    console: true,
-    file: isProd
+    // CSP options controlled by middleware/security.js
+    saltRounds: 10,
   }
 };
+
+// Helper to check if we're in production mode
+config.isProd = config.environment === 'PROD' || config.nodeEnv === 'production';
 
 module.exports = config;

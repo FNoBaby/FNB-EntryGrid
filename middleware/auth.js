@@ -40,6 +40,8 @@ function apiAuth(req, res, next) {
  * API admin middleware - for JSON responses
  */
 function apiAdmin(req, res, next) {
+  console.log('API Admin check - session user:', req.session.user);
+  
   if (req.session.user && req.session.user.role === 'admin') {
     return next();
   }

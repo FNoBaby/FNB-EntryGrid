@@ -306,14 +306,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Use the card's iconColor property or default to blue
             const iconColor = card.iconColor || '#0d6efd';
             iconHtml = `
-                <div class="card-img-top d-flex align-items-center justify-content-center pt-4" style="height: 160px;">
-                    <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor} !important;"></i>
+                <div class="card-img-container">
+                    <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor}"></i>
                 </div>
             `;
         }
         
         colDiv.innerHTML = `
-            <div class="card">
+            <div class="card clickable-card" data-url="${card.url}">
                 ${iconHtml}
                 <button class="edit-card-btn btn btn-sm">
                     <i class="bi bi-pencil"></i>
@@ -321,15 +321,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="card-body text-center">
                     <h5 class="card-title">${card.title}</h5>
                     <p class="card-text">${card.description}</p>
-                    <a href="${card.url}" class="btn btn-primary w-100" target="_blank" rel="noopener noreferrer">
+                    <a href="${card.url}" class="btn btn-primary w-100 card-btn" target="_blank" rel="noopener noreferrer">
                         <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} me-2"></i>Go to ${card.title}
                     </a>
                 </div>
             </div>
         `;
         
+        // Add event listener to make the whole card clickable
+        const clickableCard = colDiv.querySelector('.clickable-card');
+        if (clickableCard) {
+            clickableCard.addEventListener('click', function(e) {
+                // Check if click was on a button or link
+                if (!e.target.closest('.edit-card-btn') && !e.target.closest('.card-btn')) {
+                    window.open(this.dataset.url, '_blank');
+                }
+            });
+        }
+        
         // Add event listener to edit button
-        colDiv.querySelector('.edit-card-btn').addEventListener('click', () => {
+        colDiv.querySelector('.edit-card-btn').addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent card click
             editCard(card);
         });
         

@@ -65,7 +65,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load all sections and their cards
     async function loadSections() {
         try {
-            if (!sectionsContainer) return;
+            console.log('Loading sections from API...');
+            if (!sectionsContainer) {
+                console.error('Sections container not found in DOM.');
+                return;
+            }
             
             // Show loading indicator
             sectionsContainer.innerHTML = `
@@ -78,14 +82,22 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             
             const response = await fetch('/api/sections');
-            if (!response.ok) throw new Error('Failed to load sections');
+            
+            // Check if the response is OK
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response from sections API:', response.status, errorText);
+                throw new Error(`Server returned ${response.status}: ${errorText}`);
+            }
             
             const sections = await response.json();
+            console.log(`Loaded ${sections.length} sections from API`);
             
             // Clear container
             sectionsContainer.innerHTML = '';
             
             if (sections.length === 0) {
+                console.warn('No sections returned from API');
                 sectionsContainer.innerHTML = `
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle-fill me-2"></i>
@@ -100,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Render each section
             for (const section of sections) {
+                console.log(`Rendering section: ${section.id} - ${section.title}`);
                 await renderSection(section);
             }
             
@@ -109,9 +122,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (sectionsContainer) {
                 sectionsContainer.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Error loading sections: ${error.message}
+                    <div class="alert alert-danger m-3">
+                        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error Loading Dashboard</h4>
+                        <p>There was a problem loading the dashboard content.</p>
+                        <hr>
+                        <p class="mb-0">Error details: ${error.message}</p>
+                        <button class="btn btn-outline-danger mt-3" onclick="window.location.reload()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Try Again
+                        </button>
                     </div>
                 `;
             }
@@ -232,35 +250,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Render a single card
     function renderCard(card, container) {
         const cardCol = document.createElement('div');
-        cardCol.className = 'col-md-4 mb-4'; // Use col-md-4 for 3 cards per row on medium-sized screens
+        cardCol.className = 'col-md-4 mb-4';
         cardCol.id = `card-${card.id}`;
         
         // Create icon HTML based on icon type
         let iconHtml = '';
         if (card.iconType === 'image' && card.imageUrl) {
-            iconHtml = `<img src="${card.imageUrl}" alt="${card.title}" class="card-img-top p-3">`;
+            iconHtml = `<img src="${card.imageUrl}" alt="${card.title}" class="card-img-top">`;
         } else if (card.iconType === 'bootstrap' && card.bootstrapIcon) {
-            // Set default blue color if none specified but use inline style to ensure it's applied
-            const iconColor = card.iconColor || '#0d6efd';
-            
-            // Use !important to override any CSS rules
-            iconHtml = `<div class="text-center py-4">
-                <i class="bi ${card.bootstrapIcon}" style="font-size: 3rem; color: ${iconColor} !important;"></i>
+            const iconColor = card.iconColor || '#0d6efd'; // Use stored color or default blue
+            iconHtml = `<div class="card-img-container">
+                <i class="bi ${card.bootstrapIcon}" style="font-size: 5rem; color: ${iconColor}"></i>
             </div>`;
         }
         
         cardCol.innerHTML = `
-            <div class="card h-100">
+            <div class="card h-100 clickable-card" data-url="${card.url}">
                 ${iconHtml}
                 <div class="card-body">
                     <h5 class="card-title">${card.title}</h5>
                     <p class="card-text">${card.description}</p>
                 </div>
                 <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
-                    <a href="${card.url}" class="btn btn-primary" target="_blank">
+                    <a href="${card.url}" class="btn btn-primary card-btn" target="_blank">
                         Open <i class="bi ${card.buttonIcon || 'bi-box-arrow-up-right'} ms-1"></i>
                     </a>
-                    <div>
+                    <div class="card-actions">
                         <button class="btn btn-sm btn-secondary edit-card-btn" data-card-id="${card.id}">
                             <i class="bi bi-pencil"></i>
                         </button>
@@ -274,22 +289,37 @@ document.addEventListener('DOMContentLoaded', function() {
         
         container.appendChild(cardCol);
         
+        // Add click event to the whole card
+        const clickableCard = cardCol.querySelector('.clickable-card');
+        if (clickableCard) {
+            clickableCard.addEventListener('click', function(e) {
+                // Check if click was on a button or link (don't trigger card click for those)
+                if (!e.target.closest('.card-actions') && 
+                    !e.target.closest('.card-btn') && 
+                    !e.target.closest('.edit-card-btn') && 
+                    !e.target.closest('.delete-card-btn')) {
+                    window.open(this.dataset.url, '_blank');
+                }
+            });
+        }
+        
         // Add event listeners for card buttons
         const editCardBtn = cardCol.querySelector('.edit-card-btn');
         if (editCardBtn) {
-            editCardBtn.addEventListener('click', function() {
-                openEditCardModal(this.getAttribute('data-card-id'));
+            editCardBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent card click
+                const cardId = this.getAttribute('data-card-id');
+                openEditCardModal(cardId);
             });
         }
         
         const deleteCardBtn = cardCol.querySelector('.delete-card-btn');
         if (deleteCardBtn) {
-            deleteCardBtn.addEventListener('click', function() {
-                confirmDelete(
-                    'card',
-                    this.getAttribute('data-card-id'),
-                    this.getAttribute('data-card-title')
-                );
+            deleteCardBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent card click
+                const cardId = this.getAttribute('data-card-id');
+                const cardTitle = this.getAttribute('data-card-title');
+                confirmDelete('card', cardId, cardTitle);
             });
         }
     }

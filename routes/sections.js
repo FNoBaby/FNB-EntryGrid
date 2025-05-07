@@ -13,15 +13,27 @@ function createSectionsRouter(pool) {
   
   // Set global flag for database connection status
   global.cardDbConnected = !!pool;
+  // Store pool globally so withDatabaseCheck can access it
+  global.cardDbPool = pool;
 
   // Get all sections
   router.get('/', withDatabaseCheck(async (req, res, pool) => {
     try {
+        console.log('Fetching all sections...');
         const [sections] = await pool.query('SELECT * FROM sections ORDER BY `order` ASC');
+        console.log(`Found ${sections.length} sections`);
+        
+        // Log section IDs for debugging
+        if (sections.length > 0) {
+          console.log('Section IDs:', sections.map(s => s.id).join(', '));
+        } else {
+          console.log('No sections found in the database.');
+        }
+        
         res.json(sections);
     } catch (error) {
         console.error('Error fetching sections:', error);
-        res.status(500).json({ error: 'Failed to fetch sections' });
+        res.status(500).json({ error: 'Failed to fetch sections', details: error.message });
     }
   }));
 

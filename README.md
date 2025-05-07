@@ -81,6 +81,28 @@ SESSION_SECRET=your-secure-session-secret-key
 | USE_MYSQL | Use MySQL for card storage | true |
 | SESSION_SECRET | Secret for session encryption | random-string |
 
+## Development Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | /api/cards | Retrieve all cards |
+| POST   | /api/cards | Create a new card |
+| PUT    | /api/cards/:id | Update a card by ID |
+| DELETE | /api/cards/:id | Delete a card by ID |
+| GET    | /api/sections | Retrieve all sections |
+| POST   | /api/sections | Create a new section |
+| PUT    | /api/sections/:id | Update a section by ID |
+| DELETE | /api/sections/:id | Delete a section by ID |
+
+## Debug Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | /api/debug | Retrieve debug information |
+| POST   | /api/debug | Create a new debug entry |
+| PUT    | /api/debug/:id | Update a debug entry by ID |
+| DELETE | /api/debug/:id | Delete a debug entry by ID |
+
 ## Usage
 
 ### Default Login

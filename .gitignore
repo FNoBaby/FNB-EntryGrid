@@ -21,3 +21,6 @@ pids
 *.seed
 *.pid.lock
 query.txt
+
+# Unused scripts
+import-data.js

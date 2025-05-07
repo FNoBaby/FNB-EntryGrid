@@ -52,11 +52,32 @@ async function initializeUserDatabase() {
     
     // Sync models with database (creates tables if they don't exist)
     console.log('Syncing database models...');
-    await sequelize.sync({ alter: true });  // Use the imported sequelize instance
+    await sequelize.sync({ alter: false });  // Changed to false to avoid altering existing tables
     console.log('Database tables synced successfully');
+    
+    // Log table names to verify
+    const [tables] = await sequelize.query('SHOW TABLES');
+    console.log('Available tables:', tables.map(t => t[Object.keys(t)[0]]));
+    
+    // Check for the exact table name that might be used
+    const tableName = User.tableName || 'Users';
+    console.log('User model tableName:', tableName);
+    
+    // Instead of using tableNameQuery, use a simpler approach to check table existence
+    const [checkTable] = await sequelize.query(
+      `SELECT COUNT(*) as count FROM information_schema.tables 
+       WHERE table_schema = ? AND table_name = ?`,
+      {
+        replacements: [sequelize.config.database, tableName]
+      }
+    );
+    
+    console.log(`Table ${tableName} existence check:`, checkTable[0].count > 0 ? 'Exists' : 'Does not exist');
     
     // Check if admin user exists, create if not
     const adminCount = await User.count();
+    console.log(`Found ${adminCount} users in the database`);
+    
     if (adminCount === 0) {
       console.log('No users found. Creating default admin user...');
       await User.create({
@@ -64,7 +85,8 @@ async function initializeUserDatabase() {
         password: 'admin123', // Will be hashed by model hook
         name: 'Administrator',
         email: 'admin@example.com',
-        role: 'admin'
+        role: 'admin',
+        isActive: true
       });
       console.log('Default admin user created successfully');
     } else {
@@ -112,6 +134,10 @@ async function connectToCardDatabase() {
     // Check if the database exists, create it if it doesn't
     await testConnection.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\``);
     await testConnection.query(`USE \`${dbConfig.database}\``);
+    
+    // Log a success message about the database connection
+    console.log(`Successfully connected to database: ${dbConfig.database}`);
+    
     await testConnection.end();
     
     // Now create the connection pool
@@ -233,8 +259,36 @@ async function addDefaultSectionAndCard(pool) {
 
 /**
  * Wrapper function for database operations
+ * Can be used in two ways:
+ * 1. withDatabaseCheck(handler) - Uses global.cardDbPool
+ * 2. withDatabaseCheck(pool, handler) - Uses provided pool
  */
-function withDatabaseCheck(pool, handler) {
+function withDatabaseCheck(poolOrHandler, handler) {
+  // Handle both usage patterns
+  if (typeof poolOrHandler === 'function' && handler === undefined) {
+    // First usage pattern: withDatabaseCheck(handler)
+    const handlerFn = poolOrHandler;
+    
+    return async (req, res) => {
+      const dbPool = global.cardDbPool;
+      if (!dbPool) {
+        return res.status(503).json({ 
+          error: 'Database connection not available',
+          message: 'The server is running in limited mode because the database is not connected.'
+        });
+      }
+      
+      try {
+        await handlerFn(req, res, dbPool);
+      } catch (err) {
+        console.error('Database operation failed:', err);
+        res.status(500).json({ error: 'Database operation failed', details: err.message });
+      }
+    };
+  }
+  
+  // Second usage pattern: withDatabaseCheck(pool, handler)
+  const pool = poolOrHandler;
   return async (req, res) => {
     if (!pool) {
       return res.status(503).json({ 

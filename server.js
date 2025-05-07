@@ -18,6 +18,7 @@ const apiRoutes = require('./routes/api');
 const cardRoutes = require('./routes/cards');
 const sectionRoutes = require('./routes/sections');
 const viewRoutes = require('./routes/views');
+const debugRoutes = require('./routes/debug');  // Add debug routes
 
 // Load environment variables
 dotenv.config();
@@ -71,7 +72,9 @@ console.log(`Starting server in ${ENVIRONMENT} mode${DEBUG ? ' with debugging' :
     if (DEBUG) {
       app.use((req, res, next) => {
         console.log(`[DEBUG] ${req.method} ${req.url}`);
-        console.log(`[DEBUG] Session:`, req.session);
+        if (req.url.includes('/api/users')) {
+          console.log(`[DEBUG] Session user:`, req.session.user);
+        }
         next();
       });
     }
@@ -82,6 +85,12 @@ console.log(`Starting server in ${ENVIRONMENT} mode${DEBUG ? ' with debugging' :
     app.use('/api/cards', cardRoutes(cardDbPool));
     app.use('/api/sections', sectionRoutes(cardDbPool));
     app.use('/', viewRoutes);
+
+    // Only enable debug routes in non-production environments
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG === 'true') {
+      console.log('Debug routes enabled at /debug/*');
+      app.use('/debug', debugRoutes);
+    }
     
     // Serve static files AFTER defining routes
     app.use(express.static(path.join(__dirname, 'public'), {

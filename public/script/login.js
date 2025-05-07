@@ -57,9 +57,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Redirect to the dashboard or specified route
                     window.location.href = data.redirect || '/';
                 } else {
-                    // Show error message
-                    loginError.textContent = data.message || 'Invalid username or password';
+                    // Handle different error cases
                     loginError.classList.remove('d-none');
+                    
+                    // Check for inactive account message
+                    if (data.message && data.message.includes('inactive')) {
+                        // Add appropriate styling for inactive account errors
+                        loginError.className = 'alert alert-warning';
+                        loginError.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + 
+                                              'This account has been deactivated. Please contact an administrator.';
+                    } else {
+                        // Default error styling
+                        loginError.className = 'alert alert-danger';
+                        loginError.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i>' + 
+                                              (data.message || 'Invalid username or password');
+                    }
                     
                     // Reset button state
                     loginButton.disabled = false;
@@ -70,7 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Login error:', error);
                 
                 // Show error message
-                loginError.textContent = 'An error occurred during login. Please try again.';
+                loginError.className = 'alert alert-danger';
+                loginError.innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i>' + 
+                                      'An error occurred during login. Please try again.';
                 loginError.classList.remove('d-none');
                 
                 // Reset button state

@@ -13,15 +13,44 @@ const isAdmin = (req, res, next) => {
 // Get all users (admin only)
 router.get('/users', isAdmin, async (req, res) => {
     try {
+        console.log('API: Fetching all users...');
+        
+        // Log connection status
+        try {
+            await sequelize.authenticate();
+            console.log('Connection has been established successfully.');
+        } catch (error) {
+            console.error('Unable to connect to the database:', error);
+        }
+        
+        // Try a direct database query first to diagnose issues
+        const directResults = await User.findAllUsers();
+        console.log('Direct SQL query results:', directResults);
+        
+        // Now try the ORM method
         const users = await User.findAll({
             attributes: { exclude: ['password'] },
             order: [['username', 'ASC']]
         });
         
-        return res.json({ success: true, users });
+        console.log(`API: Found ${users.length} users via ORM`);
+        
+        // Log user objects for debugging (without password)
+        console.log('Users via ORM:', users.map(user => ({
+            id: user.id,
+            username: user.username,
+            role: user.role,
+            isActive: user.isActive
+        })));
+        
+        return res.json({ success: true, users: directResults.length > 0 ? directResults : users });
     } catch (error) {
         console.error('Error fetching users:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Server error: ' + error.message,
+            stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+        });
     }
 });
 

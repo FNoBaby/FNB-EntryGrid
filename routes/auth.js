@@ -31,9 +31,15 @@ router.post('/login', async (req, res) => {
     // Find user by username
     const user = await User.findOne({ where: { username: username.toLowerCase() } });
     
-    if (!user || !user.isActive) {
-      console.log(`Invalid login attempt: user '${username}' not found or inactive`);
+    if (!user) {
+      console.log(`Invalid login attempt: user '${username}' not found`);
       return res.status(401).json({ success: false, message: 'Invalid username or password' });
+    }
+    
+    // Check if account is active
+    if (!user.isActive) {
+      console.log(`Login attempt for deactivated account: '${username}'`);
+      return res.status(401).json({ success: false, message: 'Account is inactive. Please contact an administrator.' });
     }
     
     // Check password
@@ -43,13 +49,17 @@ router.post('/login', async (req, res) => {
       // Update last login time
       await user.update({ lastLogin: new Date() });
       
-      // Store user in session (excluding password)
+      // Store user in session (including name and email)
       req.session.user = {
         id: user.id,
         username: user.username,
-        name: user.name,
+        name: user.name || user.username,
+        email: user.email,
         role: user.role
       };
+      
+      // Log the session data for debugging
+      console.log('User session data:', req.session.user);
       
       // Explicitly save the session
       await new Promise((resolve, reject) => {
