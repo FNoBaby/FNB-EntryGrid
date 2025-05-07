@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+// Import sequelize from the connection module
+const { sequelize } = require('../db/connection');
 
 // Middleware to check if user is admin
 const isAdmin = (req, res, next) => {
